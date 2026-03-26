@@ -20,19 +20,137 @@
         .btn-secondary:hover { background: #2563EB; transform: translateY(-2px); }
         .btn-outline { border: 1.5px solid #E5E7EB; background: white; color: #6B7280; }
         .btn-outline:hover { border-color: #3B82F6; color: #3B82F6; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #F97316; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="min-h-screen flex items-center justify-center px-6 py-12"><div class="max-w-2xl w-full"><div class="bg-white rounded-2xl shadow-2xl p-8 md:p-12 text-center scale-in"><div class="relative mb-6"><div class="absolute inset-0 flex items-center justify-center"><div class="w-24 h-24 bg-green-100 rounded-full animate-ping opacity-75"></div></div><div class="relative w-24 h-24 bg-gradient-to-r from-[#F97316] to-[#EA580C] rounded-full flex items-center justify-center mx-auto shadow-lg"><i data-lucide="check" class="text-white" size="48" stroke-width="1.5"></i></div></div><h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-3">Profile Published! 🎉</h1><p class="text-gray-600 text-lg mb-6">Your AI-powered profile is now live and visible to recruiters worldwide</p><div class="grid grid-cols-2 gap-4 mb-8"><div class="bg-gradient-to-br from-[#3B82F6]/5 to-[#8B5CF6]/5 rounded-xl p-4"><i data-lucide="eye" class="text-[#3B82F6] mx-auto mb-2" size="24"></i><p class="text-2xl font-bold text-gray-800">0</p><p class="text-sm text-gray-600">Profile Views</p><p class="text-xs text-green-600 mt-1">Real-time updates</p></div><div class="bg-gradient-to-br from-[#F97316]/5 to-[#EA580C]/5 rounded-xl p-4"><i data-lucide="target" class="text-[#F97316] mx-auto mb-2" size="24"></i><p class="text-2xl font-bold text-gray-800">92%</p><p class="text-sm text-gray-600">AI Match Score</p><p class="text-xs text-green-600 mt-1">Top 5% of candidates</p></div></div><div class="bg-gray-50 rounded-xl p-4 mb-6"><p class="text-sm text-gray-500 mb-2">Your Public Profile URL</p><div class="flex items-center gap-2"><input type="text" id="profileLink" readonly class="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none"><button onclick="copyProfileLink()" class="px-4 py-2 bg-[#3B82F6] text-white rounded-lg text-sm font-semibold hover:bg-[#2563EB] transition-all flex items-center gap-1"><i data-lucide="copy" size="14"></i>Copy</button></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6"><button onclick="window.location.href='dashboard.html'" class="px-4 py-3 btn-primary rounded-xl font-semibold flex items-center justify-center gap-2"><i data-lucide="layout-dashboard" size="18"></i>Dashboard</button><button onclick="shareOnLinkedIn()" class="px-4 py-3 btn-secondary rounded-xl font-semibold flex items-center justify-center gap-2"><i data-lucide="linkedin" size="18"></i>LinkedIn</button><button onclick="downloadResume()" class="px-4 py-3 btn-outline rounded-xl font-semibold flex items-center justify-center gap-2"><i data-lucide="download" size="18"></i>Download PDF</button></div><div class="border-t border-gray-200 pt-6"><h3 class="font-semibold text-gray-800 mb-3">✨ What's Next?</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-left"><div class="flex items-start gap-2"><i data-lucide="bell" class="text-[#F97316] mt-0.5" size="16"></i><p class="text-sm text-gray-600">Get notified when recruiters view your profile</p></div><div class="flex items-start gap-2"><i data-lucide="trending-up" class="text-[#3B82F6] mt-0.5" size="16"></i><p class="text-sm text-gray-600">AI will suggest improvements weekly</p></div><div class="flex items-start gap-2"><i data-lucide="users" class="text-[#8B5CF6] mt-0.5" size="16"></i><p class="text-sm text-gray-600">Get matched with top companies</p></div></div></div></div><p class="text-center text-gray-500 text-sm mt-6">💡 Pro tip: Share your profile on LinkedIn to get noticed by recruiters faster</p></div></div>
+    <div class="min-h-screen flex items-center justify-center px-6 py-12">
+        <div class="max-w-2xl w-full">
+            <div id="loadingState" class="bg-white rounded-2xl shadow-2xl p-8 md:p-12 text-center">
+                <div class="loading mx-auto mb-4"></div>
+                <p class="text-gray-600">Loading your profile data...</p>
+            </div>
+            
+            <div id="successState" class="bg-white rounded-2xl shadow-2xl p-8 md:p-12 text-center scale-in hidden">
+                <div class="relative mb-6">
+                    <div class="absolute inset-0 flex items-center justify-center"><div class="w-24 h-24 bg-green-100 rounded-full animate-ping opacity-75"></div></div>
+                    <div class="relative w-24 h-24 bg-gradient-to-r from-[#F97316] to-[#EA580C] rounded-full flex items-center justify-center mx-auto shadow-lg"><i data-lucide="check" class="text-white" size="48" stroke-width="1.5"></i></div>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-3">Profile Published! 🎉</h1>
+                <p class="text-gray-600 text-lg mb-6">Your AI-powered profile is now live and visible to recruiters worldwide</p>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-gradient-to-br from-[#3B82F6]/5 to-[#8B5CF6]/5 rounded-xl p-4"><i data-lucide="eye" class="text-[#3B82F6] mx-auto mb-2" size="24"></i><p class="text-2xl font-bold text-gray-800" id="profileViews">0</p><p class="text-sm text-gray-600">Profile Views</p></div>
+                    <div class="bg-gradient-to-br from-[#F97316]/5 to-[#EA580C]/5 rounded-xl p-4"><i data-lucide="target" class="text-[#F97316] mx-auto mb-2" size="24"></i><p class="text-2xl font-bold text-gray-800" id="matchScore">--</p><p class="text-sm text-gray-600">AI Match Score</p></div>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                    <p class="text-sm text-gray-500 mb-2">Your Public Profile URL</p>
+                    <div class="flex items-center gap-2"><input type="text" id="profileLink" readonly class="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none"><button onclick="copyProfileLink()" class="px-4 py-2 bg-[#3B82F6] text-white rounded-lg text-sm font-semibold hover:bg-[#2563EB] transition-all flex items-center gap-1"><i data-lucide="copy" size="14"></i>Copy</button></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                    <button onclick="window.location.href='dashboard.html'" class="px-4 py-3 btn-primary rounded-xl font-semibold flex items-center justify-center gap-2"><i data-lucide="layout-dashboard" size="18"></i>Dashboard</button>
+                    <button onclick="shareOnLinkedIn()" class="px-4 py-3 btn-secondary rounded-xl font-semibold flex items-center justify-center gap-2"><i data-lucide="linkedin" size="18"></i>LinkedIn</button>
+                    <button onclick="downloadResume()" class="px-4 py-3 btn-outline rounded-xl font-semibold flex items-center justify-center gap-2"><i data-lucide="download" size="18"></i>Download PDF</button>
+                </div>
+                <div class="border-t border-gray-200 pt-6"><h3 class="font-semibold text-gray-800 mb-3">✨ What's Next?</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-left"><div class="flex items-start gap-2"><i data-lucide="bell" class="text-[#F97316] mt-0.5" size="16"></i><p class="text-sm text-gray-600">Get notified when recruiters view your profile</p></div><div class="flex items-start gap-2"><i data-lucide="trending-up" class="text-[#3B82F6] mt-0.5" size="16"></i><p class="text-sm text-gray-600">AI will suggest improvements weekly</p></div><div class="flex items-start gap-2"><i data-lucide="users" class="text-[#8B5CF6] mt-0.5" size="16"></i><p class="text-sm text-gray-600">Get matched with top companies</p></div></div></div>
+            </div>
+            <p class="text-center text-gray-500 text-sm mt-6">💡 Pro tip: Share your profile on LinkedIn to get noticed by recruiters faster</p>
+        </div>
+    </div>
     
-    <script>
-        lucide.createIcons(); const profileId='TAL-'+Math.random().toString(36).substr(2,8).toUpperCase(); document.getElementById('profileLink').value=`https://talentai.app/profile/${profileId}`;
-        for(let i=0;i<150;i++){setTimeout(()=>{const confetti=document.createElement('div');confetti.className='confetti';confetti.style.left=Math.random()*window.innerWidth+'px';confetti.style.top='-10px';confetti.style.backgroundColor=`hsl(${Math.random()*360},70%,50%)`;confetti.style.width=Math.random()*8+4+'px';confetti.style.height=confetti.style.width;confetti.style.animationDuration=Math.random()*2+2+'s';document.body.appendChild(confetti);setTimeout(()=>confetti.remove(),3000);},i*20);}
-        function copyProfileLink(){const linkInput=document.getElementById('profileLink');linkInput.select();document.execCommand('copy');showToast('Profile link copied to clipboard!','success');}
-        function shareOnLinkedIn(){const url=encodeURIComponent(document.getElementById('profileLink').value);const text=encodeURIComponent("Check out my AI-powered professional profile on TalentAI! 🚀");window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&summary=${text}`,'_blank');showToast('Opening LinkedIn...','info');}
-        function downloadResume(){showToast('Generating your professional PDF resume...','info');setTimeout(()=>showToast('✨ Resume downloaded successfully!','success'),1500);}
-        function showToast(message,type){const toast=document.createElement('div');toast.className=`fixed bottom-4 right-4 z-50 px-6 py-3 rounded-xl text-white font-medium shadow-lg transition-all ${type==='success'?'bg-[#F97316]':'bg-[#3B82F6]'}`;toast.innerHTML=`<div class="flex items-center gap-2"><i data-lucide="${type==='success'?'check-circle':'info'}" size="18"></i><span>${message}</span></div>`;document.body.appendChild(toast);lucide.createIcons();setTimeout(()=>{toast.style.opacity='0';setTimeout(()=>toast.remove(),300);},3000);}
-        let views=0; setInterval(()=>{if(Math.random()>0.7){views++;const viewElement=document.querySelector('.grid .text-2xl');if(viewElement)viewElement.textContent=views;}},5000);
+    <script type="module">
+        import API from './js/api.js';
+        import Utils from './js/utils.js';
+        
+        lucide.createIcons();
+        
+        let profileId = null;
+        
+        async function loadProfileData() {
+            try {
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    window.location.href = 'auth.html';
+                    return;
+                }
+                
+                // Get user and profile data
+                const userData = await API.getCurrentUser();
+                const profileData = await API.getProfile();
+                
+                const user = userData.user;
+                const profile = profileData.profile;
+                
+                profileId = user.profileId;
+                
+                // Update the page with real data
+                document.getElementById('profileLink').value = `https://fabulous-salmiakki-9a2bb1.netlify.app/public-profile.html?id=${profileId}`;
+                document.getElementById('profileViews').innerText = profile.profileViews || 0;
+                
+                // Calculate match score based on completion
+                const completion = profile.completionScore || 0;
+                const matchScore = Math.floor(completion * 0.9) + 10;
+                document.getElementById('matchScore').innerText = matchScore;
+                
+                // Show success state, hide loading
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('successState').classList.remove('hidden');
+                
+                // Create confetti celebration
+                for(let i=0;i<150;i++){
+                    setTimeout(()=>{
+                        const confetti=document.createElement('div');
+                        confetti.className='confetti';
+                        confetti.style.left=Math.random()*window.innerWidth+'px';
+                        confetti.style.top='-10px';
+                        confetti.style.backgroundColor=`hsl(${Math.random()*360},70%,50%)`;
+                        confetti.style.width=Math.random()*8+4+'px';
+                        confetti.style.height=confetti.style.width;
+                        confetti.style.animationDuration=Math.random()*2+2+'s';
+                        document.body.appendChild(confetti);
+                        setTimeout(()=>confetti.remove(),3000);
+                    },i*20);
+                }
+                
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+                Utils.showToast('Failed to load profile data', 'error');
+                document.getElementById('loadingState').innerHTML = `
+                    <div class="text-center p-8">
+                        <i data-lucide="alert-circle" class="text-red-500 mx-auto mb-4" size="48"></i>
+                        <p class="text-gray-600 mb-4">Failed to load profile data</p>
+                        <button onclick="window.location.href='dashboard.html'" class="btn-primary px-6 py-2 rounded-lg">Go to Dashboard</button>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+        
+        window.copyProfileLink = function() {
+            const linkInput = document.getElementById('profileLink');
+            linkInput.select();
+            document.execCommand('copy');
+            Utils.showToast('Profile link copied to clipboard!', 'success');
+        };
+        
+        window.shareOnLinkedIn = function() {
+            const url = encodeURIComponent(document.getElementById('profileLink').value);
+            const text = encodeURIComponent("Check out my AI-powered professional profile on TalentAI! 🚀");
+            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&summary=${text}`, '_blank');
+            Utils.showToast('Opening LinkedIn...', 'info');
+        };
+        
+        window.downloadResume = async function() {
+            Utils.showToast('Generating your professional PDF resume...', 'info');
+            try {
+                await API.downloadResume();
+                Utils.showToast('✨ Resume downloaded successfully!', 'success');
+            } catch (error) {
+                Utils.showToast('Failed to download resume', 'error');
+            }
+        };
+        
+        loadProfileData();
     </script>
 </body>
 </html>
