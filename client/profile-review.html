@@ -21,76 +21,214 @@
         .btn-outline { border: 1.5px solid #E5E7EB; background: white; color: #6B7280; }
         .btn-outline:hover { border-color: #3B82F6; color: #3B82F6; }
         .ai-summary-card { background: linear-gradient(135deg, #EFF6FF, #F5F0FF); }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #F97316; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinner { width: 20px; height: 20px; border: 2px solid #e5e7eb; border-top-color: #F97316; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
     </style>
 </head>
 <body>
     <div class="min-h-screen py-12 px-6">
         <div class="max-w-4xl mx-auto">
-            <div class="mb-12 text-center"><h1 class="text-4xl font-bold text-gray-800 mb-2">Review Your AI-Powered Profile</h1><p class="text-gray-600">Everything looks great! Let's make it live</p></div>
-            
-            <div class="flex justify-between mb-12 max-w-2xl mx-auto">
-                <div class="text-center flex-1"><div class="step completed mx-auto mb-2 flex items-center justify-center">✓</div><p class="text-xs text-gray-500">Personal</p></div>
-                <div class="text-center flex-1"><div class="step completed mx-auto mb-2 flex items-center justify-center">✓</div><p class="text-xs text-gray-500">Skills</p></div>
-                <div class="text-center flex-1"><div class="step completed mx-auto mb-2 flex items-center justify-center">✓</div><p class="text-xs text-gray-500">Projects</p></div>
-                <div class="text-center flex-1"><div class="step active mx-auto mb-2 flex items-center justify-center">4</div><p class="text-xs text-gray-500">Review</p></div>
+            <div id="loadingState" class="text-center py-12">
+                <div class="spinner mx-auto mb-4"></div>
+                <p class="text-gray-500">Loading your profile...</p>
             </div>
             
-            <div class="ai-summary-card rounded-2xl p-8 mb-6"><div class="flex items-center justify-between mb-4"><div class="flex items-center gap-3"><div class="w-12 h-12 bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] rounded-xl flex items-center justify-center"><i data-lucide="sparkles" class="text-white" size="22"></i></div><div><h3 class="font-bold text-gray-800 text-lg">AI-Generated Professional Summary</h3><p class="text-sm text-gray-500">Personalized for your profile</p></div></div><button onclick="regenerateSummary()" class="text-[#F97316] hover:text-[#EA580C] text-sm flex items-center gap-1"><i data-lucide="refresh-cw" size="14"></i>Regenerate</button></div><p id="aiSummary" class="text-gray-700 leading-relaxed"></p><button onclick="editSummary()" class="mt-3 text-[#3B82F6] hover:text-[#2563EB] text-sm flex items-center gap-1"><i data-lucide="edit-2" size="14"></i>Edit summary</button></div>
-            
-            <div class="space-y-4">
-                <div class="bg-white rounded-2xl p-6 review-card"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="user" class="text-[#3B82F6]" size="18"></i></div><h3 class="font-semibold text-gray-800 text-lg">Personal Information</h3></div><button onclick="window.location.href='profile-builder.html'" class="text-[#F97316] hover:text-[#EA580C] text-sm">Edit</button></div><div id="personalInfoDisplay" class="grid md:grid-cols-2 gap-3 text-sm"></div></div>
-                <div class="bg-white rounded-2xl p-6 review-card"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="code-2" class="text-[#3B82F6]" size="18"></i></div><h3 class="font-semibold text-gray-800 text-lg">Technical Skills</h3></div><button onclick="window.location.href='profile-skills.html'" class="text-[#F97316] hover:text-[#EA580C] text-sm">Edit</button></div><div id="skillsDisplay" class="flex flex-wrap gap-2"></div></div>
-                <div class="bg-white rounded-2xl p-6 review-card"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="briefcase" class="text-[#3B82F6]" size="18"></i></div><h3 class="font-semibold text-gray-800 text-lg">Work Experience</h3></div><button onclick="window.location.href='profile-skills.html'" class="text-[#F97316] hover:text-[#EA580C] text-sm">Edit</button></div><div id="experienceDisplay" class="space-y-3"></div></div>
-                <div class="bg-white rounded-2xl p-6 review-card"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="folder-git-2" class="text-[#3B82F6]" size="18"></i></div><h3 class="font-semibold text-gray-800 text-lg">Projects</h3></div><button onclick="window.location.href='profile-projects.html'" class="text-[#F97316] hover:text-[#EA580C] text-sm">Edit</button></div><div id="projectsDisplay" class="space-y-3"></div></div>
+            <div id="profileContent" class="hidden">
+                <div class="mb-12 text-center"><h1 class="text-4xl font-bold text-gray-800 mb-2">Review Your AI-Powered Profile</h1><p class="text-gray-600">Everything looks great! Let's make it live</p></div>
+                
+                <div class="flex justify-between mb-12 max-w-2xl mx-auto">
+                    <div class="text-center flex-1"><div class="step completed mx-auto mb-2 flex items-center justify-center">✓</div><p class="text-xs text-gray-500">Personal</p></div>
+                    <div class="text-center flex-1"><div class="step completed mx-auto mb-2 flex items-center justify-center">✓</div><p class="text-xs text-gray-500">Skills</p></div>
+                    <div class="text-center flex-1"><div class="step completed mx-auto mb-2 flex items-center justify-center">✓</div><p class="text-xs text-gray-500">Projects</p></div>
+                    <div class="text-center flex-1"><div class="step active mx-auto mb-2 flex items-center justify-center">4</div><p class="text-xs text-gray-500">Review</p></div>
+                </div>
+                
+                <div class="ai-summary-card rounded-2xl p-8 mb-6"><div class="flex items-center justify-between mb-4"><div class="flex items-center gap-3"><div class="w-12 h-12 bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] rounded-xl flex items-center justify-center"><i data-lucide="sparkles" class="text-white" size="22"></i></div><div><h3 class="font-bold text-gray-800 text-lg">AI-Generated Professional Summary</h3><p class="text-sm text-gray-500">Personalized for your profile</p></div></div><button id="generateSummaryBtn" class="text-[#F97316] hover:text-[#EA580C] text-sm flex items-center gap-1"><i data-lucide="refresh-cw" size="14"></i>Generate Summary</button></div><p id="aiSummary" class="text-gray-700 leading-relaxed"></p><button onclick="editSummary()" class="mt-3 text-[#3B82F6] hover:text-[#2563EB] text-sm flex items-center gap-1"><i data-lucide="edit-2" size="14"></i>Edit summary</button></div>
+                
+                <div class="space-y-4">
+                    <div class="bg-white rounded-2xl p-6 review-card"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="user" class="text-[#3B82F6]" size="18"></i></div><h3 class="font-semibold text-gray-800 text-lg">Personal Information</h3></div><button onclick="window.location.href='profile-builder.html'" class="text-[#F97316] hover:text-[#EA580C] text-sm">Edit</button></div><div id="personalInfoDisplay" class="grid md:grid-cols-2 gap-3 text-sm"></div></div>
+                    <div class="bg-white rounded-2xl p-6 review-card"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="code-2" class="text-[#3B82F6]" size="18"></i></div><h3 class="font-semibold text-gray-800 text-lg">Technical Skills</h3></div><button onclick="window.location.href='profile-skills.html'" class="text-[#F97316] hover:text-[#EA580C] text-sm">Edit</button></div><div id="skillsDisplay" class="flex flex-wrap gap-2"></div></div>
+                    <div class="bg-white rounded-2xl p-6 review-card"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="briefcase" class="text-[#3B82F6]" size="18"></i></div><h3 class="font-semibold text-gray-800 text-lg">Work Experience</h3></div><button onclick="window.location.href='profile-skills.html'" class="text-[#F97316] hover:text-[#EA580C] text-sm">Edit</button></div><div id="experienceDisplay" class="space-y-3"></div></div>
+                    <div class="bg-white rounded-2xl p-6 review-card"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="folder-git-2" class="text-[#3B82F6]" size="18"></i></div><h3 class="font-semibold text-gray-800 text-lg">Projects</h3></div><button onclick="window.location.href='profile-projects.html'" class="text-[#F97316] hover:text-[#EA580C] text-sm">Edit</button></div><div id="projectsDisplay" class="space-y-3"></div></div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8"><button onclick="downloadPDF()" class="px-6 py-3 border-2 border-[#F97316] text-[#F97316] rounded-xl font-semibold hover:bg-[#F97316] hover:text-white transition-all flex items-center justify-center gap-2"><i data-lucide="download" size="18"></i>Download PDF</button><button onclick="copyProfileLink()" class="px-6 py-3 border-2 border-[#3B82F6] text-[#3B82F6] rounded-xl font-semibold hover:bg-[#3B82F6] hover:text-white transition-all flex items-center justify-center gap-2"><i data-lucide="link" size="18"></i>Copy Profile Link</button><button id="publishBtn" class="px-6 py-3 bg-[#F97316] text-white rounded-xl font-semibold hover:bg-[#EA580C] transition-all flex items-center justify-center gap-2"><i data-lucide="send" size="18"></i>Publish Profile</button></div>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8"><button onclick="downloadPDF()" class="px-6 py-3 border-2 border-[#F97316] text-[#F97316] rounded-xl font-semibold hover:bg-[#F97316] hover:text-white transition-all flex items-center justify-center gap-2"><i data-lucide="download" size="18"></i>Download PDF</button><button onclick="copyProfileLink()" class="px-6 py-3 border-2 border-[#3B82F6] text-[#3B82F6] rounded-xl font-semibold hover:bg-[#3B82F6] hover:text-white transition-all flex items-center justify-center gap-2"><i data-lucide="link" size="18"></i>Copy Profile Link</button><button onclick="publishProfile()" class="px-6 py-3 bg-[#F97316] text-white rounded-xl font-semibold hover:bg-[#EA580C] transition-all flex items-center justify-center gap-2"><i data-lucide="send" size="18"></i>Publish Profile</button></div>
         </div>
     </div>
     
-    <script>
-        lucide.createIcons(); let profile = {};
-        function loadProfile(){const saved=localStorage.getItem('profileData');if(saved)profile=JSON.parse(saved);const personal=profile.personalInfo||{};document.getElementById('personalInfoDisplay').innerHTML=`<div class="bg-gray-50 rounded-lg p-2"><strong>Name:</strong> ${personal.fullName||'Not provided'}</div><div class="bg-gray-50 rounded-lg p-2"><strong>Headline:</strong> ${personal.headline||'Not provided'}</div><div class="bg-gray-50 rounded-lg p-2"><strong>Email:</strong> ${personal.email||'Not provided'}</div><div class="bg-gray-50 rounded-lg p-2"><strong>Phone:</strong> ${personal.phone||'Not provided'}</div><div class="bg-gray-50 rounded-lg p-2"><strong>Location:</strong> ${personal.location||'Not provided'}</div><div class="bg-gray-50 rounded-lg p-2"><strong>Experience:</strong> ${personal.experienceLevel||'Not provided'}</div>`;const skills=profile.skills||[];document.getElementById('skillsDisplay').innerHTML=skills.map(s=>`<span class="px-3 py-1.5 bg-[#EFF6FF] text-[#3B82F6] rounded-full text-sm font-medium">${s}</span>`).join('')||'<span class="text-gray-500 text-sm">No skills added</span>';const experience=profile.experience||[];document.getElementById('experienceDisplay').innerHTML=experience.map(exp=>`<div class="bg-gray-50 rounded-lg p-3"><p class="font-semibold text-gray-800">${exp.role} at ${exp.company}</p><p class="text-xs text-gray-500">${exp.startDate} - ${exp.endDate}</p><p class="text-sm mt-2 text-gray-600">${exp.description}</p></div>`).join('')||'<p class="text-gray-500 text-sm">No experience added</p>';const projects=profile.projects||[];document.getElementById('projectsDisplay').innerHTML=projects.map(proj=>`<div class="bg-gray-50 rounded-lg p-3"><p class="font-semibold text-gray-800">${proj.title}</p><p class="text-xs text-gray-500">Tech: ${proj.techStack}</p><p class="text-sm mt-2 text-gray-600">${proj.description}</p></div>`).join('')||'<p class="text-gray-500 text-sm">No projects added</p>';generateSummary();}
-        function generateSummary(){const personal=profile.personalInfo||{},skills=profile.skills||[],experience=profile.experience||[],projects=profile.projects||[];let summary=`${personal.fullName||'This candidate'} is a ${personal.experienceLevel||'passionate'} professional based in ${personal.location||'their location'}. `;if(skills.length>0)summary+=`Skilled in ${skills.slice(0,5).join(', ')}. `;if(experience.length>0)summary+=`Currently working as ${experience[0].role} at ${experience[0].company}. `;if(projects.length>0)summary+=`Successfully delivered ${projects.length} project${projects.length>1?'s':''} including ${projects[0].title}. `;summary+=`Known for problem-solving, attention to detail, and continuous learning.`;document.getElementById('aiSummary').textContent=summary;profile.aiSummary=summary;localStorage.setItem('profileData',JSON.stringify(profile));}
-        function regenerateSummary(){generateSummary();showToast('✨ AI regenerated your professional summary!','success');}
-        function editSummary(){const newSummary=prompt('Edit your professional summary:',document.getElementById('aiSummary').textContent);if(newSummary){document.getElementById('aiSummary').textContent=newSummary;profile.aiSummary=newSummary;localStorage.setItem('profileData',JSON.stringify(profile));showToast('✅ Summary updated!','success');}}
-        function downloadPDF(){showToast('📄 Generating PDF...','info');setTimeout(()=>showToast('✨ PDF downloaded successfully!','success'),1500);}
-        function copyProfileLink(){const profileId='TAL-'+Math.random().toString(36).substr(2,8).toUpperCase();const link=`https://talentai.app/profile/${profileId}`;navigator.clipboard.writeText(link);showToast('🔗 Profile link copied to clipboard!','success');}
-        function publishProfile(){for(let i=0;i<100;i++)createConfetti();showToast('🎉 Profile published successfully! Redirecting...','success');setTimeout(()=>window.location.href='dashboard.html',2000);}
-        function createConfetti(){const confetti=document.createElement('div');confetti.style.position='fixed';confetti.style.width=Math.random()*8+4+'px';confetti.style.height=confetti.style.width;confetti.style.background=`hsl(${Math.random()*360},70%,50%)`;confetti.style.left=Math.random()*window.innerWidth+'px';confetti.style.top='-10px';confetti.style.borderRadius='50%';confetti.style.pointerEvents='none';confetti.style.zIndex='9999';confetti.style.animation='fall 3s linear forwards';document.body.appendChild(confetti);setTimeout(()=>confetti.remove(),3000);}const styleSheet=document.createElement("style");styleSheet.textContent=`@keyframes fall{to{transform:translateY(100vh) rotate(360deg);opacity:0;}}`;document.head.appendChild(styleSheet);
-        function showToast(message,type){const toast=document.createElement('div');toast.className=`fixed bottom-4 right-4 z-50 px-6 py-3 rounded-xl text-white font-medium shadow-lg transition-all`;const colors={success:'bg-[#F97316]',error:'bg-red-500',info:'bg-[#3B82F6]'};toast.className+=` ${colors[type]}`;toast.innerHTML=`<div class="flex items-center gap-2"><i data-lucide="${type==='success'?'check-circle':'info'}" size="18"></i><span>${message}</span></div>`;document.body.appendChild(toast);lucide.createIcons();setTimeout(()=>{toast.style.opacity='0';setTimeout(()=>toast.remove(),300);},3000);}
+    <script type="module">
+        import API from './js/api.js';
+        import Utils from './js/utils.js';
+        
+        lucide.createIcons();
+        
+        // Check if user is logged in
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = 'auth.html';
+        }
+        
+        let currentProfile = null;
+        let currentUser = null;
+        
+        async function loadProfile() {
+            try {
+                // Get user data
+                const userData = await API.getCurrentUser();
+                currentUser = userData.user;
+                
+                // Get profile data
+                const profileData = await API.getProfile();
+                currentProfile = profileData.profile;
+                
+                // Display personal info
+                const personal = currentProfile.personalInfo || {};
+                document.getElementById('personalInfoDisplay').innerHTML = `
+                    <div class="bg-gray-50 rounded-lg p-2"><strong>Name:</strong> ${personal.fullName || 'Not provided'}</div>
+                    <div class="bg-gray-50 rounded-lg p-2"><strong>Headline:</strong> ${personal.headline || 'Not provided'}</div>
+                    <div class="bg-gray-50 rounded-lg p-2"><strong>Email:</strong> ${personal.email || currentUser.email || 'Not provided'}</div>
+                    <div class="bg-gray-50 rounded-lg p-2"><strong>Phone:</strong> ${personal.phone || 'Not provided'}</div>
+                    <div class="bg-gray-50 rounded-lg p-2"><strong>Location:</strong> ${personal.location || 'Not provided'}</div>
+                    <div class="bg-gray-50 rounded-lg p-2"><strong>Experience:</strong> ${personal.experienceLevel || 'Not provided'}</div>
+                `;
+                
+                // Display skills
+                const skills = currentProfile.skills || [];
+                document.getElementById('skillsDisplay').innerHTML = skills.map(s => 
+                    `<span class="px-3 py-1.5 bg-[#EFF6FF] text-[#3B82F6] rounded-full text-sm font-medium">${typeof s === 'object' ? s.name : s}</span>`
+                ).join('') || '<span class="text-gray-500 text-sm">No skills added</span>';
+                
+                // Display experience
+                const experience = currentProfile.experience || [];
+                document.getElementById('experienceDisplay').innerHTML = experience.map(exp => `
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="font-semibold text-gray-800">${exp.role} at ${exp.company}</p>
+                        <p class="text-xs text-gray-500">${exp.startDate} - ${exp.endDate}</p>
+                        <p class="text-sm mt-2 text-gray-600">${exp.description}</p>
+                    </div>
+                `).join('') || '<p class="text-gray-500 text-sm">No experience added</p>';
+                
+                // Display projects
+                const projects = currentProfile.projects || [];
+                document.getElementById('projectsDisplay').innerHTML = projects.map(proj => `
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="font-semibold text-gray-800">${proj.title}</p>
+                        <p class="text-xs text-gray-500">Tech: ${proj.techStack}</p>
+                        <p class="text-sm mt-2 text-gray-600">${proj.description}</p>
+                    </div>
+                `).join('') || '<p class="text-gray-500 text-sm">No projects added</p>';
+                
+                // Display existing AI summary if available
+                if (currentProfile.aiGenerated?.summary) {
+                    document.getElementById('aiSummary').innerHTML = `<div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl"><p class="text-gray-700">${currentProfile.aiGenerated.summary}</p></div>`;
+                } else {
+                    document.getElementById('aiSummary').innerHTML = '<p class="text-gray-500 italic">Click "Generate Summary" to create your AI-powered professional summary.</p>';
+                }
+                
+                // Hide loading, show content
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('profileContent').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+                Utils.showToast('Failed to load profile data', 'error');
+                document.getElementById('loadingState').innerHTML = '<p class="text-red-500">Failed to load profile. Please refresh the page.</p>';
+            }
+        }
+        
+        // Generate AI Summary
+        document.getElementById('generateSummaryBtn')?.addEventListener('click', async () => {
+            const btn = document.getElementById('generateSummaryBtn');
+            const summaryDiv = document.getElementById('aiSummary');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<div class="loading"></div> Generating...';
+                btn.disabled = true;
+                summaryDiv.innerHTML = '<div class="flex items-center gap-2"><div class="spinner"></div><span>AI is crafting your professional summary...</span></div>';
+                
+                const data = await API.generateSummary();
+                const summary = data.summary;
+                
+                summaryDiv.innerHTML = `
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl">
+                        <p class="text-gray-700">${summary}</p>
+                    </div>
+                `;
+                
+                // Update local profile
+                if (!currentProfile.aiGenerated) currentProfile.aiGenerated = {};
+                currentProfile.aiGenerated.summary = summary;
+                
+                Utils.showToast('✨ AI summary generated successfully!', 'success');
+            } catch (error) {
+                console.error('Failed to generate summary:', error);
+                Utils.showToast(error.message || 'Failed to generate summary', 'error');
+                summaryDiv.innerHTML = '<p class="text-red-600">Failed to generate summary. Please try again.</p>';
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+        
+        window.editSummary = function() {
+            const currentSummary = document.getElementById('aiSummary').innerText;
+            const newSummary = prompt('Edit your professional summary:', currentSummary);
+            if (newSummary && newSummary !== currentSummary) {
+                document.getElementById('aiSummary').innerHTML = `<div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl"><p class="text-gray-700">${newSummary}</p></div>`;
+                if (!currentProfile.aiGenerated) currentProfile.aiGenerated = {};
+                currentProfile.aiGenerated.summary = newSummary;
+                Utils.showToast('✅ Summary updated!', 'success');
+            }
+        };
+        
+        window.downloadPDF = async function() {
+            Utils.showToast('📄 Generating PDF...', 'info');
+            try {
+                await API.downloadResume();
+                Utils.showToast('✨ PDF downloaded successfully!', 'success');
+            } catch (error) {
+                Utils.showToast('Failed to download PDF', 'error');
+            }
+        };
+        
+        window.copyProfileLink = function() {
+            const profileLink = `https://fabulous-salmiakki-9a2bb1.netlify.app/public-profile.html?id=${currentUser.profileId}`;
+            navigator.clipboard.writeText(profileLink);
+            Utils.showToast('🔗 Profile link copied to clipboard!', 'success');
+        };
+        
+        // Publish Profile
+        document.getElementById('publishBtn')?.addEventListener('click', async () => {
+            const btn = document.getElementById('publishBtn');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<div class="loading"></div> Publishing...';
+                btn.disabled = true;
+                
+                // Make profile public
+                currentProfile.visibility = 'public';
+                await API.updateProfile(currentProfile);
+                
+                // Create confetti effect
+                Utils.createConfetti();
+                Utils.showToast('🎉 Profile published successfully! Redirecting...', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'confirmation.html';
+                }, 2000);
+            } catch (error) {
+                console.error('Failed to publish:', error);
+                Utils.showToast(error.message || 'Failed to publish profile', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+        
         loadProfile();
     </script>
-    <!-- Example: profile-review.html AI Summary Section -->
-<script type="module">
-    import ProfileService from './js/profile.js';
-    import Utils from './js/utils.js';
-
-    // Generate AI Summary Button
-    document.getElementById('generateSummaryBtn')?.addEventListener('click', async () => {
-        const btn = document.getElementById('generateSummaryBtn');
-        const summaryDiv = document.getElementById('aiSummary');
-        
-        try {
-            Utils.showLoading('generateSummaryBtn', 'Generating...');
-            summaryDiv.innerHTML = '<div class="flex items-center gap-2"><div class="spinner"></div><span>AI is crafting your professional summary...</span></div>';
-            
-            const summary = await ProfileService.generateAISummary();
-            
-            summaryDiv.innerHTML = `
-                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl">
-                    <p class="text-gray-700">${summary}</p>
-                </div>
-            `;
-            
-            Utils.showToast('✨ AI summary generated successfully!', 'success');
-        } catch (error) {
-            Utils.showToast('❌ Failed to generate summary', 'error');
-            summaryDiv.innerHTML = '<p class="text-red-600">Failed to generate summary. Please try again.</p>';
-        } finally {
-            Utils.hideLoading('generateSummaryBtn');
-        }
-    });
-</script>
 </body>
 </html>
