@@ -26,6 +26,8 @@
         .btn-outline:hover { border-color: #3B82F6; color: #3B82F6; }
         
         .input-focus:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); outline: none; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #F97316; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -61,52 +63,114 @@
                 <div class="bg-gradient-to-br from-[#3B82F6]/5 to-[#8B5CF6]/5 rounded-2xl p-6 sticky top-8 slide-in" style="animation-delay: 0.1s">
                     <div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] rounded-xl flex items-center justify-center"><i data-lucide="bot" class="text-white" size="20"></i></div><div><h3 class="font-bold text-gray-800">AI Career Assistant</h3><p class="text-xs text-gray-500">Helping you build the perfect profile</p></div></div>
                     
-                    <div class="bg-white rounded-xl p-4 mb-4"><div class="flex items-start gap-3"><i data-lucide="sparkles" class="text-[#F97316] mt-1" size="16"></i><div><p class="text-sm text-gray-700">I'll help you create a professional headline that grabs attention. Let's start with your role and expertise!</p><button class="mt-2 text-xs px-3 py-1 bg-[#F97316] text-white rounded-full hover:bg-[#EA580C] transition">Generate Headline</button></div></div></div>
+                    <div class="bg-white rounded-xl p-4 mb-4"><div class="flex items-start gap-3"><i data-lucide="sparkles" class="text-[#F97316] mt-1" size="16"></i><div><p class="text-sm text-gray-700">I'll help you create a professional headline that grabs attention. Let's start with your role and expertise!</p><button onclick="generateHeadline()" class="mt-2 text-xs px-3 py-1 bg-[#F97316] text-white rounded-full hover:bg-[#EA580C] transition">Generate Headline</button></div></div></div>
                     
-                    <div class="bg-white rounded-xl p-4"><p class="text-xs font-semibold text-gray-400 mb-3">LIVE PREVIEW</p><div class="flex items-center gap-3 mb-3"><div class="w-12 h-12 bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] rounded-full flex items-center justify-center text-white font-bold text-lg">JD</div><div><p id="previewName" class="font-semibold text-gray-800">John Doe</p><p id="previewHeadline" class="text-sm text-gray-500">Senior Frontend Developer</p></div></div><div class="flex items-center gap-2 text-xs text-gray-500"><i data-lucide="map-pin" size="12"></i><span id="previewLocation">San Francisco, CA</span></div></div>
+                    <div class="bg-white rounded-xl p-4"><p class="text-xs font-semibold text-gray-400 mb-3">LIVE PREVIEW</p><div class="flex items-center gap-3 mb-3"><div class="w-12 h-12 bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] rounded-full flex items-center justify-center text-white font-bold text-lg" id="previewInitial">JD</div><div><p id="previewName" class="font-semibold text-gray-800">John Doe</p><p id="previewHeadline" class="text-sm text-gray-500">Senior Frontend Developer</p></div></div><div class="flex items-center gap-2 text-xs text-gray-500"><i data-lucide="map-pin" size="12"></i><span id="previewLocation">San Francisco, CA</span></div></div>
                 </div>
             </div>
         </div>
     </div>
     
-    <script>
+    <script type="module">
+        import API from './js/api.js';
+        import Utils from './js/utils.js';
+        
         lucide.createIcons();
         
-        function updatePreview() {
-            document.getElementById('previewName').textContent = document.getElementById('fullName').value || 'John Doe';
-            document.getElementById('previewHeadline').textContent = document.getElementById('headline').value || 'Senior Frontend Developer';
-            document.getElementById('previewLocation').textContent = document.getElementById('location').value || 'San Francisco, CA';
+        // Check if user is logged in
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = 'auth.html';
         }
         
-        ['fullName', 'headline', 'location'].forEach(id => { document.getElementById(id)?.addEventListener('input', updatePreview); });
+        let currentProfile = null;
         
-        function saveAndNext() {
-            const profile = JSON.parse(localStorage.getItem('profileData') || '{}');
-            profile.personalInfo = {
-                fullName: document.getElementById('fullName').value,
-                headline: document.getElementById('headline').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                location: document.getElementById('location').value,
-                experienceLevel: document.getElementById('experienceLevel').value
-            };
-            localStorage.setItem('profileData', JSON.stringify(profile));
-            window.location.href = 'profile-skills.html';
-        }
-        
-        const saved = localStorage.getItem('profileData');
-        if (saved) {
-            const data = JSON.parse(saved);
-            if (data.personalInfo) {
-                document.getElementById('fullName').value = data.personalInfo.fullName || '';
-                document.getElementById('headline').value = data.personalInfo.headline || '';
-                document.getElementById('email').value = data.personalInfo.email || '';
-                document.getElementById('phone').value = data.personalInfo.phone || '';
-                document.getElementById('location').value = data.personalInfo.location || '';
-                document.getElementById('experienceLevel').value = data.personalInfo.experienceLevel || '1-3 years';
-                updatePreview();
+        async function loadProfile() {
+            try {
+                const data = await API.getProfile();
+                currentProfile = data.profile;
+                
+                // Load personal info if exists
+                if (currentProfile.personalInfo) {
+                    document.getElementById('fullName').value = currentProfile.personalInfo.fullName || '';
+                    document.getElementById('headline').value = currentProfile.personalInfo.headline || '';
+                    document.getElementById('email').value = currentProfile.personalInfo.email || '';
+                    document.getElementById('phone').value = currentProfile.personalInfo.phone || '';
+                    document.getElementById('location').value = currentProfile.personalInfo.location || '';
+                    document.getElementById('experienceLevel').value = currentProfile.personalInfo.experienceLevel || '1-3 years';
+                    updatePreview();
+                }
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+                Utils.showToast('Failed to load profile', 'error');
             }
         }
+        
+        function updatePreview() {
+            const name = document.getElementById('fullName').value || 'John Doe';
+            const headline = document.getElementById('headline').value || 'Senior Frontend Developer';
+            const location = document.getElementById('location').value || 'San Francisco, CA';
+            
+            document.getElementById('previewName').textContent = name;
+            document.getElementById('previewHeadline').textContent = headline;
+            document.getElementById('previewLocation').textContent = location;
+            document.getElementById('previewInitial').textContent = name.charAt(0).toUpperCase();
+        }
+        
+        window.saveAndNext = async function() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loading"></div> Saving...';
+            btn.disabled = true;
+            
+            try {
+                // Update profile with personal info
+                currentProfile.personalInfo = {
+                    fullName: document.getElementById('fullName').value,
+                    headline: document.getElementById('headline').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    location: document.getElementById('location').value,
+                    experienceLevel: document.getElementById('experienceLevel').value
+                };
+                
+                await API.updateProfile(currentProfile);
+                Utils.showToast('Profile saved!', 'success');
+                window.location.href = 'profile-skills.html';
+                
+            } catch (error) {
+                console.error('Failed to save:', error);
+                Utils.showToast(error.message || 'Failed to save profile', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
+        
+        window.generateHeadline = async function() {
+            const role = document.getElementById('headline').value || 'Software Developer';
+            const experience = document.getElementById('experienceLevel').value;
+            
+            Utils.showToast('Generating headline...', 'info');
+            
+            // Simulate AI generation (you can connect to real AI endpoint later)
+            setTimeout(() => {
+                const headlines = [
+                    `Senior ${role} with ${experience === '5+ years' ? '5+ years' : experience} of experience in building scalable web applications`,
+                    `Results-driven ${role} specializing in modern web technologies and team leadership`,
+                    `Innovative ${role} passionate about creating impactful digital solutions`
+                ];
+                const randomHeadline = headlines[Math.floor(Math.random() * headlines.length)];
+                document.getElementById('headline').value = randomHeadline;
+                updatePreview();
+                Utils.showToast('✨ Headline generated!', 'success');
+            }, 1000);
+        };
+        
+        ['fullName', 'headline', 'location'].forEach(id => { 
+            document.getElementById(id)?.addEventListener('input', updatePreview); 
+        });
+        
+        loadProfile();
         updatePreview();
     </script>
 </body>
