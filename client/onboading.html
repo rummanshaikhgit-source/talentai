@@ -23,6 +23,9 @@
         .progress-step { width: 40px; height: 40px; border-radius: 50%; background: #E5E7EB; color: #9CA3AF; transition: all 0.3s ease; }
         .progress-step.active { background: #3B82F6; color: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); }
         .progress-step.completed { background: #F97316; color: white; }
+        
+        .loading { display: inline-block; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #F97316; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -93,26 +96,61 @@
         </div>
     </div>
     
-    <script>
+    <script type="module">
+        import API from './js/api.js';
+        import Utils from './js/utils.js';
+        
         lucide.createIcons();
         
-        function continueOnboarding() {
-            const profile = {
-                personalInfo: {
-                    fullName: document.getElementById('onboardingName').value,
-                    headline: document.getElementById('onboardingHeadline').value,
-                    location: document.getElementById('onboardingLocation').value,
-                    experienceLevel: document.getElementById('onboardingExp').value
-                }
-            };
-            localStorage.setItem('profileData', JSON.stringify(profile));
-            window.location.href = 'profile-builder.html';
+        // Check if user is logged in
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = 'auth.html';
         }
         
-        function skipOnboarding() {
-            localStorage.setItem('profileData', JSON.stringify({}));
+        window.continueOnboarding = async function() {
+            const name = document.getElementById('onboardingName').value;
+            const headline = document.getElementById('onboardingHeadline').value;
+            const location = document.getElementById('onboardingLocation').value;
+            const experienceLevel = document.getElementById('onboardingExp').value;
+            
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loading"></div> Saving...';
+            btn.disabled = true;
+            
+            try {
+                // First, get current profile
+                const profileData = await API.getProfile();
+                let profile = profileData.profile;
+                
+                // Update personal info
+                profile.personalInfo = {
+                    fullName: name,
+                    headline: headline,
+                    location: location,
+                    experienceLevel: experienceLevel,
+                    email: profile.personalInfo?.email || '',
+                    phone: profile.personalInfo?.phone || ''
+                };
+                
+                // Save to backend
+                await API.updateProfile(profile);
+                
+                Utils.showToast('Profile saved!', 'success');
+                window.location.href = 'profile-builder.html';
+                
+            } catch (error) {
+                console.error('Failed to save profile:', error);
+                Utils.showToast(error.message || 'Failed to save profile', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
+        
+        window.skipOnboarding = async function() {
             window.location.href = 'profile-builder.html';
-        }
+        };
     </script>
 </body>
 </html>
