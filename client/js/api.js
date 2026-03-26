@@ -98,8 +98,12 @@ class TalentAIAPI {
         return this.request(`/profile/public/${profileId}`);
     }
 
-    // ==================== AI ENDPOINTS ====================
+    // ==================== AI ENDPOINTS - FULLY IMPLEMENTED ====================
     
+    /**
+     * Generate AI professional summary based on profile data
+     * POST /api/profile/generate-summary
+     */
     async generateSummary() {
         try {
             console.log('🤖 API: Requesting AI summary generation...');
@@ -114,6 +118,13 @@ class TalentAIAPI {
         }
     }
 
+    /**
+     * Generate AI project description
+     * POST /api/profile/generate-project
+     * @param {string} title - Project title
+     * @param {string} techStack - Technologies used
+     * @param {string} userInput - User's description of the project
+     */
     async generateProjectDescription(title, techStack, userInput) {
         try {
             console.log('🤖 API: Requesting project description generation...');
@@ -129,6 +140,10 @@ class TalentAIAPI {
         }
     }
 
+    /**
+     * Get AI skill suggestions based on experience and projects
+     * POST /api/profile/suggest-skills
+     */
     async getSkillSuggestions() {
         try {
             console.log('🤖 API: Requesting skill suggestions...');
@@ -143,6 +158,12 @@ class TalentAIAPI {
         }
     }
 
+    /**
+     * Enhance existing description with AI
+     * POST /api/profile/enhance-description
+     * @param {string} description - Original description to enhance
+     * @param {string} context - Optional context about the role/project
+     */
     async enhanceDescription(description, context = '') {
         try {
             console.log('🤖 API: Requesting description enhancement...');
