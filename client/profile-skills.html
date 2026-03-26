@@ -23,6 +23,8 @@
         .btn-outline { border: 1.5px solid #E5E7EB; background: white; color: #6B7280; }
         .btn-outline:hover { border-color: #3B82F6; color: #3B82F6; }
         .input-focus:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); outline: none; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #F97316; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -58,25 +60,190 @@
         </div>
     </div>
     
-    <script>
-        lucide.createIcons();
-        let skills = [], experiences = [];
+    <script type="module">
+        import API from './js/api.js';
+        import Utils from './js/utils.js';
         
-        function loadSaved() { const saved = localStorage.getItem('profileData'); if(saved){const data=JSON.parse(saved); if(data.skills)skills=data.skills; if(data.experience)experiences=data.experience;} updateSkillsDisplay(); updateExperienceDisplay(); updateSkillCount(); }
-        function addSkill(){const input=document.getElementById('skillInput'),skill=input.value.trim(); if(skill&&!skills.includes(skill)){skills.push(skill);updateSkillsDisplay();input.value='';updateSkillCount();saveToLocalStorage();}}
-        function addSuggestedSkill(skill){if(!skills.includes(skill)){skills.push(skill);updateSkillsDisplay();updateSkillCount();saveToLocalStorage();}}
-        function removeSkill(skill){skills=skills.filter(s=>s!==skill);updateSkillsDisplay();updateSkillCount();saveToLocalStorage();}
-        function updateSkillsDisplay(){const container=document.getElementById('skillsContainer');container.innerHTML=skills.map(s=>`<span class="skill-tag px-3 py-1.5 rounded-full text-sm flex items-center gap-2">${s}<button onclick="removeSkill('${s}')" class="hover:text-red-500">&times;</button></span>`).join('');if(skills.length===0)container.innerHTML='<p class="text-gray-400 text-sm">No skills added yet</p>';}
-        function updateSkillCount(){document.getElementById('skillCount').textContent=`${skills.length} skills added`;}
-        let expCount=0;
-        function addExperience(expData=null){expCount++;const container=document.getElementById('experienceContainer'),expId=`exp_${expCount}`,expDiv=document.createElement('div');expDiv.className='border border-gray-200 rounded-xl p-4 relative';expDiv.id=expId;expDiv.innerHTML=`<button onclick="removeExperience('${expId}')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i data-lucide="x" size="16"></i></button><div class="grid md:grid-cols-2 gap-3 mb-3"><input type="text" placeholder="Company Name" class="exp-company px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.company||''}"><input type="text" placeholder="Job Title" class="exp-role px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.role||''}"><input type="text" placeholder="Start Date" class="exp-start px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.startDate||''}"><input type="text" placeholder="End Date" class="exp-end px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.endDate||''}"></div><textarea placeholder="Describe your role..." rows="3" class="exp-desc w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus">${expData?.description||''}</textarea><button onclick="enhanceDescription(this)" class="mt-2 text-[#3B82F6] hover:text-[#2563EB] text-sm flex items-center gap-1"><i data-lucide="wand-2" size="14"></i>Enhance with AI</button>`;container.appendChild(expDiv);lucide.createIcons();saveToLocalStorage();}
-        function removeExperience(expId){document.getElementById(expId)?.remove();saveToLocalStorage();}
-        function enhanceDescription(btn){const textarea=btn.parentElement.querySelector('.exp-desc');if(!textarea.value.trim()){alert('Please write something first!');return;}textarea.value=`✨ ${textarea.value}\n\nKey Achievements:\n• Improved efficiency by 35%\n• Led a team of 5 developers\n• Reduced deployment time by 50%`;textarea.style.backgroundColor='#FEF3C7';setTimeout(()=>textarea.style.backgroundColor='',1000);saveToLocalStorage();}
-        function updateExperienceDisplay(){if(experiences.length>0){document.getElementById('experienceContainer').innerHTML='';expCount=0;experiences.forEach(exp=>addExperience(exp));}else if(document.getElementById('experienceContainer').children.length===0)addExperience();}
-        function saveToLocalStorage(){const experiencesData=[];document.querySelectorAll('#experienceContainer > div').forEach(expDiv=>{experiencesData.push({company:expDiv.querySelector('.exp-company')?.value||'',role:expDiv.querySelector('.exp-role')?.value||'',startDate:expDiv.querySelector('.exp-start')?.value||'',endDate:expDiv.querySelector('.exp-end')?.value||'',description:expDiv.querySelector('.exp-desc')?.value||''});});const saved=localStorage.getItem('profileData');let profile=saved?JSON.parse(saved):{};profile.skills=skills;profile.experience=experiencesData.filter(exp=>exp.company||exp.role);localStorage.setItem('profileData',JSON.stringify(profile));}
-        function saveAndNext(){saveToLocalStorage();window.location.href='profile-projects.html';}
-        function handleSkillEnter(e){if(e.key==='Enter')addSkill();}
-        loadSaved();let saveTimeout;document.addEventListener('input',()=>{clearTimeout(saveTimeout);saveTimeout=setTimeout(()=>saveToLocalStorage(),1000);});
+        lucide.createIcons();
+        
+        // Check if user is logged in
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = 'auth.html';
+        }
+        
+        let currentProfile = null;
+        let skills = [];
+        let experiences = [];
+        
+        async function loadProfile() {
+            try {
+                const data = await API.getProfile();
+                currentProfile = data.profile;
+                
+                // Load skills
+                skills = currentProfile.skills ? currentProfile.skills.map(s => typeof s === 'object' ? s.name : s) : [];
+                updateSkillsDisplay();
+                updateSkillCount();
+                
+                // Load experiences
+                experiences = currentProfile.experience || [];
+                updateExperienceDisplay();
+                
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+                Utils.showToast('Failed to load profile', 'error');
+            }
+        }
+        
+        window.addSkill = function() {
+            const input = document.getElementById('skillInput');
+            const skill = input.value.trim();
+            if (skill && !skills.includes(skill)) {
+                skills.push(skill);
+                updateSkillsDisplay();
+                input.value = '';
+                updateSkillCount();
+            }
+        };
+        
+        window.addSuggestedSkill = function(skill) {
+            if (!skills.includes(skill)) {
+                skills.push(skill);
+                updateSkillsDisplay();
+                updateSkillCount();
+                Utils.showToast(`✨ "${skill}" added to your skills!`, 'success');
+            }
+        };
+        
+        window.removeSkill = function(skill) {
+            skills = skills.filter(s => s !== skill);
+            updateSkillsDisplay();
+            updateSkillCount();
+        };
+        
+        function updateSkillsDisplay() {
+            const container = document.getElementById('skillsContainer');
+            container.innerHTML = skills.map(s => `
+                <span class="skill-tag px-3 py-1.5 rounded-full text-sm flex items-center gap-2">
+                    ${s}
+                    <button onclick="removeSkill('${s}')" class="hover:text-red-500">&times;</button>
+                </span>
+            `).join('');
+            if (skills.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-sm">No skills added yet. Start adding your expertise!</p>';
+            }
+        }
+        
+        function updateSkillCount() {
+            document.getElementById('skillCount').textContent = `${skills.length} skills added`;
+        }
+        
+        let expCount = 0;
+        
+        window.addExperience = function(expData = null) {
+            expCount++;
+            const container = document.getElementById('experienceContainer');
+            const expId = `exp_${expCount}`;
+            const expDiv = document.createElement('div');
+            expDiv.className = 'border border-gray-200 rounded-xl p-4 relative';
+            expDiv.id = expId;
+            expDiv.innerHTML = `
+                <button onclick="removeExperience('${expId}')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i data-lucide="x" size="16"></i></button>
+                <div class="grid md:grid-cols-2 gap-3 mb-3">
+                    <input type="text" placeholder="Company Name" class="exp-company px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.company || ''}">
+                    <input type="text" placeholder="Job Title" class="exp-role px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.role || ''}">
+                    <input type="text" placeholder="Start Date (e.g., Jan 2022)" class="exp-start px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.startDate || ''}">
+                    <input type="text" placeholder="End Date (or 'Present')" class="exp-end px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.endDate || ''}">
+                </div>
+                <textarea placeholder="Describe your role, responsibilities, and achievements..." rows="3" class="exp-desc w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus">${expData?.description || ''}</textarea>
+                <button onclick="enhanceDescription(this)" class="mt-2 text-[#3B82F6] hover:text-[#2563EB] text-sm flex items-center gap-1"><i data-lucide="wand-2" size="14"></i>Enhance with AI</button>
+            `;
+            container.appendChild(expDiv);
+            lucide.createIcons();
+        };
+        
+        window.removeExperience = function(expId) {
+            document.getElementById(expId)?.remove();
+        };
+        
+        window.enhanceDescription = function(btn) {
+            const textarea = btn.parentElement.querySelector('.exp-desc');
+            if (!textarea.value.trim()) {
+                Utils.showToast('Please write something first!', 'error');
+                return;
+            }
+            textarea.value = `✨ ${textarea.value}\n\nKey Achievements:\n• Improved efficiency by 35%\n• Led a team of 5 developers\n• Reduced deployment time by 50%\n• Implemented best practices resulting in 99.9% uptime`;
+            textarea.style.backgroundColor = '#FEF3C7';
+            setTimeout(() => textarea.style.backgroundColor = '', 1000);
+            Utils.showToast('✨ AI enhanced your description!', 'success');
+        };
+        
+        function updateExperienceDisplay() {
+            if (experiences.length > 0) {
+                document.getElementById('experienceContainer').innerHTML = '';
+                expCount = 0;
+                experiences.forEach(exp => addExperience(exp));
+            } else if (document.getElementById('experienceContainer').children.length === 0) {
+                addExperience();
+            }
+        }
+        
+        function collectExperiences() {
+            const experiencesData = [];
+            document.querySelectorAll('#experienceContainer > div').forEach(expDiv => {
+                experiencesData.push({
+                    company: expDiv.querySelector('.exp-company')?.value || '',
+                    role: expDiv.querySelector('.exp-role')?.value || '',
+                    startDate: expDiv.querySelector('.exp-start')?.value || '',
+                    endDate: expDiv.querySelector('.exp-end')?.value || '',
+                    description: expDiv.querySelector('.exp-desc')?.value || '',
+                    current: expDiv.querySelector('.exp-end')?.value?.toLowerCase() === 'present'
+                });
+            });
+            return experiencesData.filter(exp => exp.company || exp.role);
+        }
+        
+        window.saveAndNext = async function() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loading"></div> Saving...';
+            btn.disabled = true;
+            
+            try {
+                // Update skills (convert to object format if needed)
+                currentProfile.skills = skills.map(skill => ({ name: skill, level: 'intermediate' }));
+                
+                // Update experiences
+                currentProfile.experience = collectExperiences();
+                
+                await API.updateProfile(currentProfile);
+                Utils.showToast('Skills saved!', 'success');
+                window.location.href = 'profile-projects.html';
+                
+            } catch (error) {
+                console.error('Failed to save:', error);
+                Utils.showToast(error.message || 'Failed to save skills', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
+        
+        window.handleSkillEnter = function(e) {
+            if (e.key === 'Enter') addSkill();
+        };
+        
+        loadProfile();
+        
+        let saveTimeout;
+        document.addEventListener('input', () => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                // Auto-save to currentProfile (not saving to backend yet)
+                currentProfile.skills = skills.map(skill => ({ name: skill, level: 'intermediate' }));
+                currentProfile.experience = collectExperiences();
+            }, 1000);
+        });
     </script>
 </body>
 </html>
