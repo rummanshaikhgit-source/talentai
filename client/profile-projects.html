@@ -22,6 +22,8 @@
         .btn-outline { border: 1.5px solid #E5E7EB; background: white; color: #6B7280; }
         .btn-outline:hover { border-color: #3B82F6; color: #3B82F6; }
         .input-focus:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); outline: none; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #F97316; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -52,20 +54,163 @@
         </div>
     </div>
     
-    <script>
-        lucide.createIcons();
-        let projects = [], projectCounter = 0;
+    <script type="module">
+        import API from './js/api.js';
+        import Utils from './js/utils.js';
         
-        function loadSaved(){const saved=localStorage.getItem('profileData');if(saved){const data=JSON.parse(saved);if(data.projects)projects=data.projects;}updateProjectsDisplay();updateProjectCount();}
-        function addProject(projectData=null){projectCounter++;const container=document.getElementById('projectsContainer'),projectId=`project_${projectCounter}`,projectDiv=document.createElement('div');projectDiv.className='project-card bg-white rounded-xl p-5 relative';projectDiv.id=projectId;projectDiv.innerHTML=`<button onclick="removeProject('${projectId}')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i data-lucide="x" size="18"></i></button><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="folder-git-2" class="text-[#3B82F6]" size="18"></i></div><input type="text" placeholder="Project Title" class="project-title flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus text-lg font-semibold" value="${projectData?.title||''}"></div><input type="text" placeholder="Tech Stack (e.g., React, Node.js, MongoDB)" class="project-tech w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:border-[#3B82F6] input-focus" value="${projectData?.techStack||''}"><textarea placeholder="Project Description - What did you build? What challenges did you solve?" rows="4" class="project-desc w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:border-[#3B82F6] input-focus">${projectData?.description||''}</textarea><div class="flex gap-3"><input type="text" placeholder="Live Demo URL (optional)" class="project-link flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${projectData?.link||''}"><input type="text" placeholder="GitHub URL (optional)" class="project-github flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${projectData?.github||''}"></div><button onclick="enhanceProject(this)" class="mt-3 text-[#3B82F6] hover:text-[#2563EB] text-sm flex items-center gap-1"><i data-lucide="wand-2" size="14"></i>Enhance with AI</button>`;container.appendChild(projectDiv);lucide.createIcons();saveToLocalStorage();}
-        function removeProject(projectId){document.getElementById(projectId)?.remove();saveToLocalStorage();updateProjectCount();}
-        function enhanceProject(btn){const projectDiv=btn.closest('.project-card, .bg-white'),descTextarea=projectDiv.querySelector('.project-desc');if(!descTextarea.value.trim()){alert('Please write something first!');return;}descTextarea.value=`✨ ${descTextarea.value}\n\n🎯 Key Achievements:\n• Delivered high-impact solution used by 1000+ users\n• Optimized performance achieving 40% faster load times\n• Implemented best practices and clean code architecture`;descTextarea.style.backgroundColor='#FEF3C7';setTimeout(()=>descTextarea.style.backgroundColor='',1000);saveToLocalStorage();}
-        function generateProjectWithAI(){const input=document.getElementById('aiProjectInput'),text=input.value.trim();if(!text){alert('Please describe your project first!');return;}const words=text.split(' '),title=words.slice(0,4).join(' ')+' Platform',description=`${text}\n\n🚀 Key Features:\n• Real-time functionality with WebSocket integration\n• Secure authentication and authorization\n• Responsive design for all devices\n\n📈 Results:\n• Successfully deployed to production with 99.9% uptime\n• Used by 500+ daily active users\n• Reduced load time by 45% through optimization`;addProject({title:title,techStack:'React, Node.js, MongoDB',description:description});input.value='';updateProjectCount();}
-        function updateProjectsDisplay(){if(projects.length>0){document.getElementById('projectsContainer').innerHTML='';projectCounter=0;projects.forEach(project=>addProject(project));}else if(document.getElementById('projectsContainer').children.length===0)addProject();}
-        function updateProjectCount(){const count=document.querySelectorAll('#projectsContainer > div').length;document.getElementById('projectCount').textContent=`${count} project${count!==1?'s':''}`;}
-        function saveToLocalStorage(){const projectsData=[];document.querySelectorAll('#projectsContainer > div').forEach(projectDiv=>{const title=projectDiv.querySelector('.project-title')?.value||'';if(title){projectsData.push({title:title,techStack:projectDiv.querySelector('.project-tech')?.value||'',description:projectDiv.querySelector('.project-desc')?.value||'',link:projectDiv.querySelector('.project-link')?.value||'',github:projectDiv.querySelector('.project-github')?.value||''});}});const saved=localStorage.getItem('profileData');let profile=saved?JSON.parse(saved):{};profile.projects=projectsData;localStorage.setItem('profileData',JSON.stringify(profile));}
-        function saveAndNext(){saveToLocalStorage();window.location.href='profile-review.html';}
-        loadSaved();let saveTimeout;document.addEventListener('input',()=>{clearTimeout(saveTimeout);saveTimeout=setTimeout(()=>saveToLocalStorage(),1000);});
+        lucide.createIcons();
+        
+        // Check if user is logged in
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = 'auth.html';
+        }
+        
+        let currentProfile = null;
+        let projects = [];
+        let projectCounter = 0;
+        
+        async function loadProfile() {
+            try {
+                const data = await API.getProfile();
+                currentProfile = data.profile;
+                projects = currentProfile.projects || [];
+                updateProjectsDisplay();
+                updateProjectCount();
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+                Utils.showToast('Failed to load profile', 'error');
+            }
+        }
+        
+        function addProject(projectData = null) {
+            projectCounter++;
+            const container = document.getElementById('projectsContainer');
+            const projectId = `project_${projectCounter}`;
+            const projectDiv = document.createElement('div');
+            projectDiv.className = 'project-card bg-white rounded-xl p-5 relative';
+            projectDiv.id = projectId;
+            projectDiv.innerHTML = `
+                <button onclick="removeProject('${projectId}')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i data-lucide="x" size="18"></i></button>
+                <div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="folder-git-2" class="text-[#3B82F6]" size="18"></i></div><input type="text" placeholder="Project Title" class="project-title flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus text-lg font-semibold" value="${projectData?.title || ''}"></div>
+                <input type="text" placeholder="Tech Stack (e.g., React, Node.js, MongoDB)" class="project-tech w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:border-[#3B82F6] input-focus" value="${projectData?.techStack || ''}">
+                <textarea placeholder="Project Description - What did you build? What challenges did you solve?" rows="4" class="project-desc w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:border-[#3B82F6] input-focus">${projectData?.description || ''}</textarea>
+                <div class="flex gap-3"><input type="text" placeholder="Live Demo URL (optional)" class="project-link flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${projectData?.link || ''}"><input type="text" placeholder="GitHub URL (optional)" class="project-github flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${projectData?.github || ''}"></div>
+                <button onclick="enhanceProject(this)" class="mt-3 text-[#3B82F6] hover:text-[#2563EB] text-sm flex items-center gap-1"><i data-lucide="wand-2" size="14"></i>Enhance with AI</button>
+            `;
+            container.appendChild(projectDiv);
+            lucide.createIcons();
+        }
+        
+        window.removeProject = function(projectId) {
+            document.getElementById(projectId)?.remove();
+            updateProjectCount();
+        };
+        
+        window.enhanceProject = function(btn) {
+            const projectDiv = btn.closest('.project-card, .bg-white');
+            const descTextarea = projectDiv.querySelector('.project-desc');
+            if (!descTextarea.value.trim()) {
+                Utils.showToast('Please write something first!', 'error');
+                return;
+            }
+            descTextarea.value = `✨ ${descTextarea.value}\n\n🎯 Key Achievements:\n• Delivered high-impact solution used by 1000+ users\n• Optimized performance achieving 40% faster load times\n• Implemented best practices and clean code architecture`;
+            descTextarea.style.backgroundColor = '#FEF3C7';
+            setTimeout(() => descTextarea.style.backgroundColor = '', 1000);
+            Utils.showToast('✨ Description enhanced!', 'success');
+        };
+        
+        window.generateProjectWithAI = async function() {
+            const input = document.getElementById('aiProjectInput');
+            const text = input.value.trim();
+            if (!text) {
+                Utils.showToast('Please describe your project first!', 'error');
+                return;
+            }
+            
+            Utils.showToast('Generating project...', 'info');
+            
+            // Simulate AI generation (you can connect to real AI endpoint later)
+            setTimeout(() => {
+                const words = text.split(' ');
+                const title = words.slice(0, 4).join(' ') + ' Platform';
+                const description = `${text}\n\n🚀 Key Features:\n• Real-time functionality with WebSocket integration\n• Secure authentication and authorization\n• Responsive design for all devices\n\n📈 Results:\n• Successfully deployed to production with 99.9% uptime\n• Used by 500+ daily active users\n• Reduced load time by 45% through optimization`;
+                
+                addProject({
+                    title: title,
+                    techStack: 'React, Node.js, MongoDB',
+                    description: description
+                });
+                input.value = '';
+                updateProjectCount();
+                Utils.showToast('✨ AI generated project!', 'success');
+            }, 1000);
+        };
+        
+        function updateProjectsDisplay() {
+            if (projects.length > 0) {
+                document.getElementById('projectsContainer').innerHTML = '';
+                projectCounter = 0;
+                projects.forEach(project => addProject(project));
+            } else if (document.getElementById('projectsContainer').children.length === 0) {
+                addProject();
+            }
+        }
+        
+        function updateProjectCount() {
+            const count = document.querySelectorAll('#projectsContainer > div').length;
+            document.getElementById('projectCount').textContent = `${count} project${count !== 1 ? 's' : ''}`;
+        }
+        
+        function collectProjects() {
+            const projectsData = [];
+            document.querySelectorAll('#projectsContainer > div').forEach(projectDiv => {
+                const title = projectDiv.querySelector('.project-title')?.value || '';
+                if (title) {
+                    projectsData.push({
+                        title: title,
+                        techStack: projectDiv.querySelector('.project-tech')?.value || '',
+                        description: projectDiv.querySelector('.project-desc')?.value || '',
+                        link: projectDiv.querySelector('.project-link')?.value || '',
+                        github: projectDiv.querySelector('.project-github')?.value || ''
+                    });
+                }
+            });
+            return projectsData;
+        }
+        
+        window.saveAndNext = async function() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loading"></div> Saving...';
+            btn.disabled = true;
+            
+            try {
+                const projectsData = collectProjects();
+                currentProfile.projects = projectsData;
+                
+                await API.updateProfile(currentProfile);
+                Utils.showToast('Projects saved!', 'success');
+                window.location.href = 'profile-review.html';
+            } catch (error) {
+                console.error('Failed to save:', error);
+                Utils.showToast(error.message || 'Failed to save projects', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
+        
+        loadProfile();
+        
+        let saveTimeout;
+        document.addEventListener('input', () => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                // Auto-save to currentProfile (not saving to backend yet)
+                const projectsData = collectProjects();
+                currentProfile.projects = projectsData;
+            }, 1000);
+        });
     </script>
 </body>
 </html>
