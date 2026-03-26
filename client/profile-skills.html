@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentAI · Skills & Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F9FAFB; }
+        
+        .skill-tag { background: #EFF6FF; color: #1E40AF; transition: all 0.2s ease; }
+        .skill-tag:hover { background: #DBEAFE; transform: scale(1.02); }
+        .step { width: 40px; height: 40px; border-radius: 50%; background: #E5E7EB; color: #9CA3AF; }
+        .step.completed { background: #F97316; color: white; }
+        .step.active { background: #3B82F6; color: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); }
+        .btn-primary { background: #F97316; color: white; transition: all 0.3s ease; }
+        .btn-primary:hover { background: #EA580C; transform: translateY(-2px); }
+        .btn-secondary { background: #3B82F6; color: white; transition: all 0.3s ease; }
+        .btn-secondary:hover { background: #2563EB; transform: translateY(-2px); }
+        .btn-outline { border: 1.5px solid #E5E7EB; background: white; color: #6B7280; }
+        .btn-outline:hover { border-color: #3B82F6; color: #3B82F6; }
+        .input-focus:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); outline: none; }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen py-12 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="mb-12 text-center"><h1 class="text-4xl font-bold text-gray-800 mb-2">Showcase Your Skills</h1><p class="text-gray-600">Add your technical expertise and work experience</p></div>
+            
+            <div class="flex justify-between mb-12 max-w-2xl mx-auto">
+                <div class="text-center flex-1"><div class="step completed mx-auto mb-2 flex items-center justify-center">✓</div><p class="text-xs text-gray-500">Personal Info</p></div>
+                <div class="text-center flex-1"><div class="step active mx-auto mb-2 flex items-center justify-center">2</div><p class="text-xs text-gray-500">Skills</p></div>
+                <div class="text-center flex-1"><div class="step mx-auto mb-2 flex items-center justify-center">3</div><p class="text-xs text-gray-500">Projects</p></div>
+                <div class="text-center flex-1"><div class="step mx-auto mb-2 flex items-center justify-center">4</div><p class="text-xs text-gray-500">Review</p></div>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg">
+                        <div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-xl flex items-center justify-center"><i data-lucide="code-2" class="text-[#3B82F6]" size="20"></i></div><div><h2 class="text-xl font-bold text-gray-800">Technical Skills</h2><p class="text-sm text-gray-500">Add your core competencies</p></div></div>
+                        <div class="mb-4"><div class="flex gap-2 mb-3"><input type="text" id="skillInput" placeholder="e.g., React, Python, AWS..." class="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:border-[#3B82F6] input-focus" onkeypress="handleSkillEnter(event)"><button onclick="addSkill()" class="px-6 py-3 bg-[#3B82F6] text-white rounded-xl hover:bg-[#2563EB] transition">Add</button></div><div id="skillsContainer" class="flex flex-wrap gap-2"></div></div>
+                        <div class="mt-4 p-4 bg-[#EFF6FF] rounded-xl"><div class="flex items-center gap-2 mb-2"><i data-lucide="sparkles" class="text-[#F97316]" size="16"></i><span class="text-sm font-semibold text-gray-700">AI Skill Suggestions</span></div><div id="aiSkillSuggestions" class="flex flex-wrap gap-2"><button onclick="addSuggestedSkill('TypeScript')" class="px-3 py-1.5 bg-white rounded-full text-sm hover:bg-[#3B82F6] hover:text-white transition">TypeScript</button><button onclick="addSuggestedSkill('Node.js')" class="px-3 py-1.5 bg-white rounded-full text-sm hover:bg-[#3B82F6] hover:text-white transition">Node.js</button><button onclick="addSuggestedSkill('Tailwind CSS')" class="px-3 py-1.5 bg-white rounded-full text-sm hover:bg-[#3B82F6] hover:text-white transition">Tailwind CSS</button></div></div>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-8 shadow-lg"><div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-xl flex items-center justify-center"><i data-lucide="briefcase" class="text-[#3B82F6]" size="20"></i></div><div><h2 class="text-xl font-bold text-gray-800">Work Experience</h2><p class="text-sm text-gray-500">Tell us about your professional journey</p></div></div><div id="experienceContainer" class="space-y-4"></div><button onclick="addExperience()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-[#3B82F6] hover:text-[#3B82F6] transition flex items-center justify-center gap-2"><i data-lucide="plus" size="18"></i>Add Experience</button></div>
+                    
+                    <div class="flex gap-4"><button onclick="window.location.href='profile-builder.html'" class="flex-1 btn-outline py-3 rounded-xl font-semibold">← Back</button><button onclick="saveAndNext()" class="flex-1 btn-primary py-3 rounded-xl font-semibold">Next: Projects →</button></div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-[#3B82F6]/5 to-[#8B5CF6]/5 rounded-2xl p-6 sticky top-8"><div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] rounded-xl flex items-center justify-center"><i data-lucide="bot" class="text-white" size="20"></i></div><div><h3 class="font-bold text-gray-800">AI Skill Coach</h3><p class="text-xs text-gray-500">Personalized recommendations</p></div></div>
+                    <div class="space-y-3 mb-6"><div class="bg-white rounded-xl p-4"><div class="flex items-start gap-3"><i data-lucide="trending-up" class="text-[#F97316] mt-1" size="16"></i><div><p class="text-sm font-semibold text-gray-800 mb-1">Skill Gap Analysis</p><p class="text-sm text-gray-600">Based on your profile, adding cloud skills could increase your match rate by 35%</p></div></div></div><div class="bg-white rounded-xl p-4"><div class="flex items-start gap-3"><i data-lucide="target" class="text-[#3B82F6] mt-1" size="16"></i><div><p class="text-sm font-semibold text-gray-800 mb-1">Top Demanded Skills</p><div class="flex flex-wrap gap-1 mt-2"><span class="px-2 py-1 bg-[#EFF6FF] text-[#3B82F6] rounded-full text-xs">React</span><span class="px-2 py-1 bg-[#EFF6FF] text-[#3B82F6] rounded-full text-xs">Python</span><span class="px-2 py-1 bg-[#EFF6FF] text-[#3B82F6] rounded-full text-xs">AWS</span></div></div></div></div></div>
+                    <div class="border-t border-gray-200 pt-4"><div class="flex items-center justify-between text-xs text-gray-500"><span>✨ Profiles with 5+ skills get 3x more views</span><span id="skillCount">0 skills added</span></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        lucide.createIcons();
+        let skills = [], experiences = [];
+        
+        function loadSaved() { const saved = localStorage.getItem('profileData'); if(saved){const data=JSON.parse(saved); if(data.skills)skills=data.skills; if(data.experience)experiences=data.experience;} updateSkillsDisplay(); updateExperienceDisplay(); updateSkillCount(); }
+        function addSkill(){const input=document.getElementById('skillInput'),skill=input.value.trim(); if(skill&&!skills.includes(skill)){skills.push(skill);updateSkillsDisplay();input.value='';updateSkillCount();saveToLocalStorage();}}
+        function addSuggestedSkill(skill){if(!skills.includes(skill)){skills.push(skill);updateSkillsDisplay();updateSkillCount();saveToLocalStorage();}}
+        function removeSkill(skill){skills=skills.filter(s=>s!==skill);updateSkillsDisplay();updateSkillCount();saveToLocalStorage();}
+        function updateSkillsDisplay(){const container=document.getElementById('skillsContainer');container.innerHTML=skills.map(s=>`<span class="skill-tag px-3 py-1.5 rounded-full text-sm flex items-center gap-2">${s}<button onclick="removeSkill('${s}')" class="hover:text-red-500">&times;</button></span>`).join('');if(skills.length===0)container.innerHTML='<p class="text-gray-400 text-sm">No skills added yet</p>';}
+        function updateSkillCount(){document.getElementById('skillCount').textContent=`${skills.length} skills added`;}
+        let expCount=0;
+        function addExperience(expData=null){expCount++;const container=document.getElementById('experienceContainer'),expId=`exp_${expCount}`,expDiv=document.createElement('div');expDiv.className='border border-gray-200 rounded-xl p-4 relative';expDiv.id=expId;expDiv.innerHTML=`<button onclick="removeExperience('${expId}')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i data-lucide="x" size="16"></i></button><div class="grid md:grid-cols-2 gap-3 mb-3"><input type="text" placeholder="Company Name" class="exp-company px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.company||''}"><input type="text" placeholder="Job Title" class="exp-role px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.role||''}"><input type="text" placeholder="Start Date" class="exp-start px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.startDate||''}"><input type="text" placeholder="End Date" class="exp-end px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${expData?.endDate||''}"></div><textarea placeholder="Describe your role..." rows="3" class="exp-desc w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus">${expData?.description||''}</textarea><button onclick="enhanceDescription(this)" class="mt-2 text-[#3B82F6] hover:text-[#2563EB] text-sm flex items-center gap-1"><i data-lucide="wand-2" size="14"></i>Enhance with AI</button>`;container.appendChild(expDiv);lucide.createIcons();saveToLocalStorage();}
+        function removeExperience(expId){document.getElementById(expId)?.remove();saveToLocalStorage();}
+        function enhanceDescription(btn){const textarea=btn.parentElement.querySelector('.exp-desc');if(!textarea.value.trim()){alert('Please write something first!');return;}textarea.value=`✨ ${textarea.value}\n\nKey Achievements:\n• Improved efficiency by 35%\n• Led a team of 5 developers\n• Reduced deployment time by 50%`;textarea.style.backgroundColor='#FEF3C7';setTimeout(()=>textarea.style.backgroundColor='',1000);saveToLocalStorage();}
+        function updateExperienceDisplay(){if(experiences.length>0){document.getElementById('experienceContainer').innerHTML='';expCount=0;experiences.forEach(exp=>addExperience(exp));}else if(document.getElementById('experienceContainer').children.length===0)addExperience();}
+        function saveToLocalStorage(){const experiencesData=[];document.querySelectorAll('#experienceContainer > div').forEach(expDiv=>{experiencesData.push({company:expDiv.querySelector('.exp-company')?.value||'',role:expDiv.querySelector('.exp-role')?.value||'',startDate:expDiv.querySelector('.exp-start')?.value||'',endDate:expDiv.querySelector('.exp-end')?.value||'',description:expDiv.querySelector('.exp-desc')?.value||''});});const saved=localStorage.getItem('profileData');let profile=saved?JSON.parse(saved):{};profile.skills=skills;profile.experience=experiencesData.filter(exp=>exp.company||exp.role);localStorage.setItem('profileData',JSON.stringify(profile));}
+        function saveAndNext(){saveToLocalStorage();window.location.href='profile-projects.html';}
+        function handleSkillEnter(e){if(e.key==='Enter')addSkill();}
+        loadSaved();let saveTimeout;document.addEventListener('input',()=>{clearTimeout(saveTimeout);saveTimeout=setTimeout(()=>saveToLocalStorage(),1000);});
+    </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentAI · Projects</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F9FAFB; }
+        .project-card { transition: all 0.3s ease; border: 1px solid #E5E7EB; }
+        .project-card:hover { border-color: #3B82F6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .step { width: 40px; height: 40px; border-radius: 50%; background: #E5E7EB; color: #9CA3AF; }
+        .step.completed { background: #F97316; color: white; }
+        .step.active { background: #3B82F6; color: white; box-shadow: 0 0 0 4px rgba(59,130,246,0.2); }
+        .btn-primary { background: #F97316; color: white; transition: all 0.3s ease; }
+        .btn-primary:hover { background: #EA580C; transform: translateY(-2px); }
+        .btn-secondary { background: #3B82F6; color: white; }
+        .btn-secondary:hover { background: #2563EB; transform: translateY(-2px); }
+        .btn-outline { border: 1.5px solid #E5E7EB; background: white; color: #6B7280; }
+        .btn-outline:hover { border-color: #3B82F6; color: #3B82F6; }
+        .input-focus:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); outline: none; }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen py-12 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="mb-12 text-center"><h1 class="text-4xl font-bold text-gray-800 mb-2">Showcase Your Projects</h1><p class="text-gray-600">Demonstrate your skills with real-world projects</p></div>
+            
+            <div class="flex justify-between mb-12 max-w-2xl mx-auto">
+                <div class="text-center flex-1"><div class="step completed mx-auto mb-2 flex items-center justify-center">✓</div><p class="text-xs text-gray-500">Personal Info</p></div>
+                <div class="text-center flex-1"><div class="step completed mx-auto mb-2 flex items-center justify-center">✓</div><p class="text-xs text-gray-500">Skills</p></div>
+                <div class="text-center flex-1"><div class="step active mx-auto mb-2 flex items-center justify-center">3</div><p class="text-xs text-gray-500">Projects</p></div>
+                <div class="text-center flex-1"><div class="step mx-auto mb-2 flex items-center justify-center">4</div><p class="text-xs text-gray-500">Review</p></div>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div>
+                    <div class="bg-gradient-to-r from-[#3B82F6]/10 to-[#8B5CF6]/10 rounded-2xl p-6 mb-6"><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] rounded-xl flex items-center justify-center"><i data-lucide="wand-2" class="text-white" size="18"></i></div><div><h3 class="font-bold text-gray-800">AI Project Generator</h3><p class="text-xs text-gray-500">Describe your project in plain English</p></div></div><textarea id="aiProjectInput" rows="3" placeholder="Example: I built a food delivery app with real-time tracking, payment integration..." class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#3B82F6] input-focus"></textarea><button onclick="generateProjectWithAI()" class="mt-3 px-4 py-2 bg-[#F97316] text-white rounded-lg text-sm font-semibold hover:bg-[#EA580C] transition flex items-center gap-2"><i data-lucide="sparkles" size="14"></i>Generate Professional Project</button></div>
+                    <div id="projectsContainer" class="space-y-4"></div>
+                    <button onclick="addProject()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-[#3B82F6] hover:text-[#3B82F6] transition flex items-center justify-center gap-2"><i data-lucide="plus" size="18"></i>Add Another Project</button>
+                    <div class="flex gap-4 mt-6"><button onclick="window.location.href='profile-skills.html'" class="flex-1 btn-outline py-3 rounded-xl font-semibold">← Back</button><button onclick="saveAndNext()" class="flex-1 btn-primary py-3 rounded-xl font-semibold">Review Profile →</button></div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-[#3B82F6]/5 to-[#8B5CF6]/5 rounded-2xl p-6 sticky top-8"><div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] rounded-xl flex items-center justify-center"><i data-lucide="bot" class="text-white" size="20"></i></div><div><h3 class="font-bold text-gray-800">AI Project Coach</h3><p class="text-xs text-gray-500">Making your projects shine</p></div></div>
+                    <div class="space-y-3"><div class="bg-white rounded-xl p-4"><div class="flex items-start gap-3"><i data-lucide="bar-chart-2" class="text-[#F97316] mt-1" size="16"></i><div><p class="text-sm font-semibold text-gray-800 mb-1">📊 Impact Metrics</p><p class="text-xs text-gray-600">"Add numbers to show impact: 'Increased users by 40%' or 'Reduced load time by 50%'"</p></div></div></div><div class="bg-white rounded-xl p-4"><div class="flex items-start gap-3"><i data-lucide="git-branch" class="text-[#3B82F6] mt-1" size="16"></i><div><p class="text-sm font-semibold text-gray-800 mb-1">🔧 Tech Stack</p><p class="text-xs text-gray-600">"List technologies used - recruiters search by specific skills"</p></div></div></div><div class="bg-white rounded-xl p-4"><div class="flex items-start gap-3"><i data-lucide="target" class="text-[#8B5CF6] mt-1" size="16"></i><div><p class="text-sm font-semibold text-gray-800 mb-1">🎯 Problem Solved</p><p class="text-xs text-gray-600">"What problem did your project solve? This shows your thinking process"</p></div></div></div></div>
+                    <div class="border-t border-gray-200 mt-4 pt-4"><div class="flex items-center justify-between text-xs text-gray-500"><span>✨ 2-3 projects recommended</span><span id="projectCount">0 projects</span></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        lucide.createIcons();
+        let projects = [], projectCounter = 0;
+        
+        function loadSaved(){const saved=localStorage.getItem('profileData');if(saved){const data=JSON.parse(saved);if(data.projects)projects=data.projects;}updateProjectsDisplay();updateProjectCount();}
+        function addProject(projectData=null){projectCounter++;const container=document.getElementById('projectsContainer'),projectId=`project_${projectCounter}`,projectDiv=document.createElement('div');projectDiv.className='project-card bg-white rounded-xl p-5 relative';projectDiv.id=projectId;projectDiv.innerHTML=`<button onclick="removeProject('${projectId}')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i data-lucide="x" size="18"></i></button><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="folder-git-2" class="text-[#3B82F6]" size="18"></i></div><input type="text" placeholder="Project Title" class="project-title flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus text-lg font-semibold" value="${projectData?.title||''}"></div><input type="text" placeholder="Tech Stack (e.g., React, Node.js, MongoDB)" class="project-tech w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:border-[#3B82F6] input-focus" value="${projectData?.techStack||''}"><textarea placeholder="Project Description - What did you build? What challenges did you solve?" rows="4" class="project-desc w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:border-[#3B82F6] input-focus">${projectData?.description||''}</textarea><div class="flex gap-3"><input type="text" placeholder="Live Demo URL (optional)" class="project-link flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${projectData?.link||''}"><input type="text" placeholder="GitHub URL (optional)" class="project-github flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-[#3B82F6] input-focus" value="${projectData?.github||''}"></div><button onclick="enhanceProject(this)" class="mt-3 text-[#3B82F6] hover:text-[#2563EB] text-sm flex items-center gap-1"><i data-lucide="wand-2" size="14"></i>Enhance with AI</button>`;container.appendChild(projectDiv);lucide.createIcons();saveToLocalStorage();}
+        function removeProject(projectId){document.getElementById(projectId)?.remove();saveToLocalStorage();updateProjectCount();}
+        function enhanceProject(btn){const projectDiv=btn.closest('.project-card, .bg-white'),descTextarea=projectDiv.querySelector('.project-desc');if(!descTextarea.value.trim()){alert('Please write something first!');return;}descTextarea.value=`✨ ${descTextarea.value}\n\n🎯 Key Achievements:\n• Delivered high-impact solution used by 1000+ users\n• Optimized performance achieving 40% faster load times\n• Implemented best practices and clean code architecture`;descTextarea.style.backgroundColor='#FEF3C7';setTimeout(()=>descTextarea.style.backgroundColor='',1000);saveToLocalStorage();}
+        function generateProjectWithAI(){const input=document.getElementById('aiProjectInput'),text=input.value.trim();if(!text){alert('Please describe your project first!');return;}const words=text.split(' '),title=words.slice(0,4).join(' ')+' Platform',description=`${text}\n\n🚀 Key Features:\n• Real-time functionality with WebSocket integration\n• Secure authentication and authorization\n• Responsive design for all devices\n\n📈 Results:\n• Successfully deployed to production with 99.9% uptime\n• Used by 500+ daily active users\n• Reduced load time by 45% through optimization`;addProject({title:title,techStack:'React, Node.js, MongoDB',description:description});input.value='';updateProjectCount();}
+        function updateProjectsDisplay(){if(projects.length>0){document.getElementById('projectsContainer').innerHTML='';projectCounter=0;projects.forEach(project=>addProject(project));}else if(document.getElementById('projectsContainer').children.length===0)addProject();}
+        function updateProjectCount(){const count=document.querySelectorAll('#projectsContainer > div').length;document.getElementById('projectCount').textContent=`${count} project${count!==1?'s':''}`;}
+        function saveToLocalStorage(){const projectsData=[];document.querySelectorAll('#projectsContainer > div').forEach(projectDiv=>{const title=projectDiv.querySelector('.project-title')?.value||'';if(title){projectsData.push({title:title,techStack:projectDiv.querySelector('.project-tech')?.value||'',description:projectDiv.querySelector('.project-desc')?.value||'',link:projectDiv.querySelector('.project-link')?.value||'',github:projectDiv.querySelector('.project-github')?.value||''});}});const saved=localStorage.getItem('profileData');let profile=saved?JSON.parse(saved):{};profile.projects=projectsData;localStorage.setItem('profileData',JSON.stringify(profile));}
+        function saveAndNext(){saveToLocalStorage();window.location.href='profile-review.html';}
+        loadSaved();let saveTimeout;document.addEventListener('input',()=>{clearTimeout(saveTimeout);saveTimeout=setTimeout(()=>saveToLocalStorage(),1000);});
+    </script>
+</body>
+</html>
