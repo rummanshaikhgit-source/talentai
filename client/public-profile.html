@@ -15,29 +15,178 @@
         .skill-tag:hover { background: #DBEAFE; transform: scale(1.02); }
         .contact-btn { transition: all 0.3s ease; }
         .contact-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(59,130,246,0.3); }
+        .loading { display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #F97316; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-container { text-align: center; padding: 60px 20px; }
+        .error-icon { width: 80px; height: 80px; margin: 0 auto 20px; color: #ef4444; }
     </style>
 </head>
 <body>
-    <div class="profile-header text-white py-16"><div class="max-w-4xl mx-auto px-6 text-center"><div class="inline-block w-24 h-24 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-lg"><span class="text-4xl font-bold text-[#3B82F6]" id="avatarInitial">JD</span></div><h1 class="text-4xl font-bold mb-2" id="profileName">John Doe</h1><p class="text-xl text-indigo-100 mb-4" id="profileHeadline">Senior Frontend Developer</p><div class="flex items-center justify-center gap-4 text-indigo-100"><span class="flex items-center gap-1"><i data-lucide="map-pin" size="16"></i> <span id="profileLocation">San Francisco, CA</span></span><span class="flex items-center gap-1"><i data-lucide="briefcase" size="16"></i> <span id="profileExperience">5+ years</span></span></div></div></div>
+    <div id="loadingState" class="min-h-screen flex items-center justify-center">
+        <div class="text-center">
+            <div class="loading mx-auto mb-4"></div>
+            <p class="text-gray-500">Loading profile...</p>
+        </div>
+    </div>
     
-    <div class="max-w-4xl mx-auto px-6 py-12"><div class="bg-white rounded-2xl p-8 shadow-sm mb-8"><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="sparkles" class="text-[#3B82F6]" size="18"></i></div><h2 class="text-xl font-bold text-gray-800">Professional Summary</h2></div><p id="profileSummary" class="text-gray-700 leading-relaxed"></p></div>
-        
-        <div class="bg-white rounded-2xl p-8 shadow-sm mb-8"><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="code-2" class="text-[#3B82F6]" size="18"></i></div><h2 class="text-xl font-bold text-gray-800">Technical Skills</h2></div><div id="skillsList" class="flex flex-wrap gap-2"></div></div>
-        
-        <div class="bg-white rounded-2xl p-8 shadow-sm mb-8"><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="briefcase" class="text-[#3B82F6]" size="18"></i></div><h2 class="text-xl font-bold text-gray-800">Work Experience</h2></div><div id="experienceList" class="space-y-4"></div></div>
-        
-        <div class="bg-white rounded-2xl p-8 shadow-sm mb-8"><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="folder-git-2" class="text-[#3B82F6]" size="18"></i></div><h2 class="text-xl font-bold text-gray-800">Featured Projects</h2></div><div id="projectsList" class="grid md:grid-cols-2 gap-4"></div></div>
-        
-        <div class="bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] rounded-2xl p-8 text-center"><h3 class="text-xl font-bold text-white mb-2">Interested in this candidate?</h3><p class="text-white/90 mb-4">Contact them directly through TalentAI</p><button onclick="contactCandidate()" class="contact-btn px-8 py-3 bg-white text-[#3B82F6] rounded-xl font-semibold hover:bg-gray-100 transition-all inline-flex items-center gap-2"><i data-lucide="mail" size="18"></i>Contact Candidate</button></div></div>
+    <div id="errorState" class="min-h-screen flex items-center justify-center hidden">
+        <div class="error-container">
+            <i data-lucide="alert-circle" class="error-icon" size="80"></i>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Profile Not Found</h2>
+            <p class="text-gray-600 mb-6">The profile you're looking for doesn't exist or is private.</p>
+            <button onclick="window.location.href='index.html'" class="btn-primary px-6 py-2 rounded-lg">Go to Home</button>
+        </div>
+    </div>
     
-    <script>
-        lucide.createIcons(); const urlParams=new URLSearchParams(window.location.search); const profileId=urlParams.get('id')||'demo';
-        const demoProfile={name:"Priya Sharma",headline:"Senior Full Stack Developer",location:"Mumbai, India",experience:"5+ years",summary:"Passionate full-stack developer with 6 years of experience building scalable web applications. Expert in React, Node.js, and cloud technologies.",skills:["React","Node.js","TypeScript","Python","AWS","MongoDB"],experience:[{role:"Senior Full Stack Developer",company:"TechCorp Solutions",period:"2022 - Present",description:"Leading development of enterprise applications, mentoring junior developers, and architecting scalable solutions."},{role:"Full Stack Developer",company:"StartupHub",period:"2019 - 2022",description:"Developed and maintained multiple client projects. Implemented responsive designs and RESTful APIs."}],projects:[{title:"E-Commerce Platform",techStack:"React, Node.js, MongoDB",description:"Built a full-featured e-commerce platform with real-time inventory management, payment integration, and admin dashboard."},{title:"Task Management App",techStack:"Vue.js, Express, PostgreSQL",description:"Created a collaborative task management tool with real-time updates, team workspaces, and analytics dashboard."}]};
-        document.getElementById('avatarInitial').textContent=demoProfile.name.charAt(0); document.getElementById('profileName').textContent=demoProfile.name; document.getElementById('profileHeadline').textContent=demoProfile.headline; document.getElementById('profileLocation').textContent=demoProfile.location; document.getElementById('profileExperience').textContent=demoProfile.experience; document.getElementById('profileSummary').textContent=demoProfile.summary;
-        document.getElementById('skillsList').innerHTML=demoProfile.skills.map(s=>`<span class="skill-tag px-3 py-1.5 rounded-full text-sm font-medium">${s}</span>`).join('');
-        document.getElementById('experienceList').innerHTML=demoProfile.experience.map(exp=>`<div class="border-l-4 border-[#3B82F6] pl-4"><p class="font-semibold text-gray-800">${exp.role} at ${exp.company}</p><p class="text-xs text-gray-500">${exp.period}</p><p class="text-sm text-gray-600 mt-2">${exp.description}</p></div>`).join('');
-        document.getElementById('projectsList').innerHTML=demoProfile.projects.map(proj=>`<div class="bg-gray-50 rounded-lg p-4"><p class="font-semibold text-gray-800">${proj.title}</p><p class="text-xs text-gray-500 mt-1">${proj.techStack}</p><p class="text-sm text-gray-600 mt-2">${proj.description}</p></div>`).join('');
-        function contactCandidate(){alert("Contact feature coming soon! This would open a messaging interface.");}
+    <div id="profileContent" class="hidden">
+        <div class="profile-header text-white py-16">
+            <div class="max-w-4xl mx-auto px-6 text-center">
+                <div class="inline-block w-24 h-24 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+                    <span class="text-4xl font-bold text-[#3B82F6]" id="avatarInitial">JD</span>
+                </div>
+                <h1 class="text-4xl font-bold mb-2" id="profileName">Loading...</h1>
+                <p class="text-xl text-indigo-100 mb-4" id="profileHeadline">Loading...</p>
+                <div class="flex items-center justify-center gap-4 text-indigo-100">
+                    <span class="flex items-center gap-1"><i data-lucide="map-pin" size="16"></i> <span id="profileLocation">Loading...</span></span>
+                    <span class="flex items-center gap-1"><i data-lucide="briefcase" size="16"></i> <span id="profileExperience">Loading...</span></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="max-w-4xl mx-auto px-6 py-12">
+            <div class="bg-white rounded-2xl p-8 shadow-sm mb-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="sparkles" class="text-[#3B82F6]" size="18"></i></div>
+                    <h2 class="text-xl font-bold text-gray-800">Professional Summary</h2>
+                </div>
+                <p id="profileSummary" class="text-gray-700 leading-relaxed"></p>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-8 shadow-sm mb-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="code-2" class="text-[#3B82F6]" size="18"></i></div>
+                    <h2 class="text-xl font-bold text-gray-800">Technical Skills</h2>
+                </div>
+                <div id="skillsList" class="flex flex-wrap gap-2"></div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-8 shadow-sm mb-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="briefcase" class="text-[#3B82F6]" size="18"></i></div>
+                    <h2 class="text-xl font-bold text-gray-800">Work Experience</h2>
+                </div>
+                <div id="experienceList" class="space-y-4"></div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-8 shadow-sm mb-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-[#3B82F6]/10 rounded-lg flex items-center justify-center"><i data-lucide="folder-git-2" class="text-[#3B82F6]" size="18"></i></div>
+                    <h2 class="text-xl font-bold text-gray-800">Featured Projects</h2>
+                </div>
+                <div id="projectsList" class="grid md:grid-cols-2 gap-4"></div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] rounded-2xl p-8 text-center">
+                <h3 class="text-xl font-bold text-white mb-2">Interested in this candidate?</h3>
+                <p class="text-white/90 mb-4">Contact them directly through TalentAI</p>
+                <button onclick="contactCandidate()" class="contact-btn px-8 py-3 bg-white text-[#3B82F6] rounded-xl font-semibold hover:bg-gray-100 transition-all inline-flex items-center gap-2">
+                    <i data-lucide="mail" size="18"></i>Contact Candidate
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import API from './js/api.js';
+        import Utils from './js/utils.js';
+        
+        lucide.createIcons();
+        
+        // Get profile ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const profileId = urlParams.get('id');
+        
+        if (!profileId) {
+            // No profile ID, show error
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            lucide.createIcons();
+        } else {
+            loadPublicProfile(profileId);
+        }
+        
+        async function loadPublicProfile(id) {
+            try {
+                console.log('🔍 Fetching public profile for ID:', id);
+                const data = await API.getPublicProfile(id);
+                const profile = data.profile;
+                const user = profile.user;
+                
+                // Update profile header
+                const initial = user.name.charAt(0).toUpperCase();
+                document.getElementById('avatarInitial').textContent = initial;
+                document.getElementById('profileName').textContent = user.name;
+                document.getElementById('profileHeadline').textContent = profile.personalInfo?.headline || 'Professional';
+                document.getElementById('profileLocation').textContent = profile.personalInfo?.location || 'Location not specified';
+                
+                // Calculate experience years if available
+                let expText = profile.personalInfo?.experienceLevel || 'Experienced';
+                document.getElementById('profileExperience').textContent = expText;
+                
+                // Professional Summary
+                const summary = profile.aiGenerated?.summary || 'No summary available.';
+                document.getElementById('profileSummary').textContent = summary;
+                
+                // Skills
+                const skills = profile.skills || [];
+                const skillsHtml = skills.map(s => `<span class="skill-tag px-3 py-1.5 rounded-full text-sm font-medium">${typeof s === 'object' ? s.name : s}</span>`).join('');
+                document.getElementById('skillsList').innerHTML = skillsHtml || '<p class="text-gray-500">No skills added yet.</p>';
+                
+                // Experience
+                const experience = profile.experience || [];
+                const expHtml = experience.map(exp => `
+                    <div class="border-l-4 border-[#3B82F6] pl-4">
+                        <p class="font-semibold text-gray-800">${exp.role} at ${exp.company}</p>
+                        <p class="text-xs text-gray-500">${exp.startDate || ''} - ${exp.current ? 'Present' : (exp.endDate || '')}</p>
+                        <p class="text-sm text-gray-600 mt-2">${exp.description || 'No description provided.'}</p>
+                    </div>
+                `).join('');
+                document.getElementById('experienceList').innerHTML = expHtml || '<p class="text-gray-500">No experience added yet.</p>';
+                
+                // Projects
+                const projects = profile.projects || [];
+                const projectsHtml = projects.map(proj => `
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="font-semibold text-gray-800">${proj.title}</p>
+                        <p class="text-xs text-gray-500 mt-1">Tech: ${proj.techStack || 'Not specified'}</p>
+                        <p class="text-sm text-gray-600 mt-2">${proj.description || 'No description provided.'}</p>
+                    </div>
+                `).join('');
+                document.getElementById('projectsList').innerHTML = projectsHtml || '<p class="text-gray-500 col-span-2 text-center">No projects added yet.</p>';
+                
+                // Track profile view (optional)
+                try {
+                    await API.trackProfileView(id);
+                } catch (e) {
+                    console.log('View tracking not implemented or failed');
+                }
+                
+                // Hide loading, show content
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('profileContent').classList.remove('hidden');
+                lucide.createIcons();
+                
+            } catch (error) {
+                console.error('Failed to load public profile:', error);
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('errorState').classList.remove('hidden');
+                lucide.createIcons();
+            }
+        }
+        
+        function contactCandidate() {
+            Utils.showToast('Contact feature coming soon!', 'info');
+        }
     </script>
 </body>
 </html>
