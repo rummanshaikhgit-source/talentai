@@ -2,7 +2,7 @@
 
 const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:5000/api' 
-    : 'https://api.talentai.app/api';
+    : 'https://talentai-hpa6.onrender.com/api';
 
 class TalentAIAPI {
     constructor() {
