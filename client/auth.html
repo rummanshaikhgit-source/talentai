@@ -9,7 +9,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background-color: rgb(0, 0, 0); min-height: 100vh; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
         
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .slide-up { animation: slideUp 0.5s ease forwards; }
@@ -27,6 +27,9 @@
         
         .social-btn { transition: all 0.3s ease; border: 1px solid #E5E7EB; }
         .social-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-color: #3B82F6; }
+        
+        .loading { display: inline-block; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #F97316; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -135,7 +138,10 @@
         </div>
     </div>
     
-    <script>
+    <script type="module">
+        import API from './js/api.js';
+        import Utils from './js/utils.js';
+        
         lucide.createIcons();
         
         const loginTab = document.getElementById('loginTab');
@@ -161,48 +167,78 @@
             loginForm.classList.add('hidden');
         });
         
-        function handleLogin() {
+        window.handleLogin = async function() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            if (!email || !password) { showToast('Please fill in all fields', 'error'); return; }
-            showToast('Signing in...', 'info');
-            setTimeout(() => {
-                localStorage.setItem('authToken', 'demo-token');
-                localStorage.setItem('user', JSON.stringify({ email, name: email.split('@')[0] }));
-                showToast('Welcome back! Redirecting...', 'success');
-                setTimeout(() => window.location.href = 'dashboard.html', 1000);
-            }, 1000);
-        }
+            
+            if (!email || !password) {
+                Utils.showToast('Please fill in all fields', 'error');
+                return;
+            }
+            
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loading"></div> Signing in...';
+            btn.disabled = true;
+            
+            try {
+                const result = await API.login(email, password);
+                Utils.showToast('Welcome back! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            } catch (error) {
+                Utils.showToast(error.message || 'Login failed', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
         
-        function handleSignup() {
+        window.handleSignup = async function() {
             const name = document.getElementById('signupName').value;
             const email = document.getElementById('signupEmail').value;
             const password = document.getElementById('signupPassword').value;
-            if (!name || !email || !password) { showToast('Please fill in all fields', 'error'); return; }
-            if (password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
-            showToast('Creating your account...', 'info');
-            setTimeout(() => {
-                localStorage.setItem('authToken', 'demo-token');
-                localStorage.setItem('user', JSON.stringify({ email, name }));
-                showToast('Account created successfully!', 'success');
-                setTimeout(() => window.location.href = 'onboarding.html', 1000);
-            }, 1000);
-        }
+            const role = document.querySelector('input[name="role"]:checked').value;
+            
+            if (!name || !email || !password) {
+                Utils.showToast('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                Utils.showToast('Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loading"></div> Creating account...';
+            btn.disabled = true;
+            
+            try {
+                const result = await API.signup(email, password, name, role);
+                Utils.showToast('Account created successfully! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'onboarding.html';
+                }, 1000);
+            } catch (error) {
+                Utils.showToast(error.message || 'Signup failed', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
         
-        function socialLogin(provider) { showToast(`Connecting with ${provider}...`, 'info'); setTimeout(() => window.location.href = 'dashboard.html', 1000); }
+        window.socialLogin = function(provider) {
+            Utils.showToast(`Connecting with ${provider}...`, 'info');
+            setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        };
         
-        function showToast(message, type) {
-            const toast = document.createElement('div');
-            toast.className = `fixed bottom-4 right-4 z-50 px-6 py-3 rounded-xl text-white font-medium shadow-lg transition-all`;
-            const colors = { success: 'bg-[#F97316]', error: 'bg-red-500', info: 'bg-[#3B82F6]' };
-            toast.className += ` ${colors[type]}`;
-            toast.innerHTML = `<div class="flex items-center gap-2"><i data-lucide="${type === 'success' ? 'check-circle' : 'info'}" size="18"></i><span>${message}</span></div>`;
-            document.body.appendChild(toast);
-            lucide.createIcons();
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
-        }
-        
-        document.addEventListener('keypress', (e) => { if (e.key === 'Enter') { if (!loginForm.classList.contains('hidden')) handleLogin(); else handleSignup(); } });
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (!loginForm.classList.contains('hidden')) handleLogin();
+                else handleSignup();
+            }
+        });
     </script>
 </body>
 </html>
